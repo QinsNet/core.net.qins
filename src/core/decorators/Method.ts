@@ -1,25 +1,15 @@
-import 'reflect-metadata';
+import type { NetConfig } from './Global';
+import { GlobalNet } from './Global';
+import { getClassConfig } from './Class';
 
-export interface NetConfig{
-  baseUrl: string;
-  net: RequestInit;
-}
-
-export interface GlobalConfig extends NetConfig{
-  name: string;
-}
-
-export interface ClassConfig extends NetConfig{
-  name: string;
-}
-
-export interface MethodConfig extends NetConfig{
+export interface MethodConfig extends NetConfig {
   name: string;
   send: string[];
   receive: string[];
 }
-class MethodConfigDefault implements MethodConfig{
-  constructor(config: Partial<MethodConfig> = {}){
+
+class MethodConfigDefault implements MethodConfig {
+  constructor(config: Partial<MethodConfig> = {}) {
     Object.assign(this, config);
   }
   name: string = '';
@@ -29,42 +19,7 @@ class MethodConfigDefault implements MethodConfig{
   net: RequestInit = {};
 }
 
-class ClassConfigDefault implements ClassConfig{
-  constructor(config: Partial<ClassConfig> = {}){
-    Object.assign(this, config);
-  }
-  name: string = '';
-  baseUrl: string = '';
-  net: RequestInit = {};
-}
-
-const CLASS_CONFIG_KEY = '__class_config__';
 const METHOD_CONFIG_KEY = '__method_config__';
-
-export class GlobalNet {
-  static config: GlobalConfig = {
-    name: 'GlobalNet',
-    baseUrl: '',
-    net: {},
-  };
-}
-function ensureMethodConfigMap(target: object): Record<string, MethodConfig> {
-  const methodTarget = target as Record<string, unknown>;
-  if (!methodTarget[METHOD_CONFIG_KEY]) {
-    methodTarget[METHOD_CONFIG_KEY] = {};
-  }
-  return methodTarget[METHOD_CONFIG_KEY] as Record<string, MethodConfig>;
-}
-
-export function MetaClass(config?: Partial<ClassConfig>) {
-  return function (constructor: Function) {
-    if(config === undefined) config = {};
-    if(config.name === undefined) config.name = constructor.name;
-    const existingConfig: ClassConfig = (constructor as unknown as Record<string, unknown>)[CLASS_CONFIG_KEY] as ClassConfig || new ClassConfigDefault();
-    existingConfig.name = config.name;
-    (constructor as unknown as Record<string, unknown>)[CLASS_CONFIG_KEY] = { ...existingConfig, ...config };
-  };
-}
 
 const BASIC_TYPES = [String, Number, Boolean, BigInt];
 
@@ -84,6 +39,14 @@ function buildSendPaths(target: object, propertyKey: string, paths: string[]): s
     }
   });
   return finalPaths;
+}
+
+function ensureMethodConfigMap(target: object): Record<string, MethodConfig> {
+  const methodTarget = target as Record<string, unknown>;
+  if (!methodTarget[METHOD_CONFIG_KEY]) {
+    methodTarget[METHOD_CONFIG_KEY] = {};
+  }
+  return methodTarget[METHOD_CONFIG_KEY] as Record<string, MethodConfig>;
 }
 
 function applyMethodConfig(target: object, propertyKey: string, config: Partial<MethodConfig> = {}): void {
@@ -124,11 +87,6 @@ export function Receive(paths: string[] = []) {
   return function (target: object, propertyKey: string, _descriptor: PropertyDescriptor) {
     applyMethodConfig(target, propertyKey, { receive: paths });
   };
-}
-
-export function getClassConfig(target: object): ClassConfig {
-  const constructor = target.constructor;
-  return (constructor as unknown as Record<string, unknown>)[CLASS_CONFIG_KEY] as ClassConfig || {};
 }
 
 export function getMethodConfig(target: object, propertyKey: string): MethodConfig | undefined {

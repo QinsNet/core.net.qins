@@ -1,10 +1,9 @@
-import type { MethodConfig } from '../decorators/Annotations';
-import { GlobalNet, getClassConfig, getMethodConfig, hasSendConfig } from '../decorators/Annotations';
+import { getClassConfig, getMethodConfig, hasSendConfig } from '..';
+import { GlobalNet } from '../decorators/Global';
+import type { MethodConfig } from '../decorators/Method';
 import { buildSendData, applyReceiveData } from '../serialize/Serialize';
 import type { RequestProtocol, ResponseProtocol } from '../types/Protocol';
 import { createRequestProtocol } from '../types/Protocol';
-
-export { GlobalNet } from '../decorators/Annotations';
 
 async function sendRequest(
   url: string,

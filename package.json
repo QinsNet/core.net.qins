@@ -1,0 +1,30 @@
+{
+  "name": "qins-net",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "files": [
+    "dist",
+    "lib"
+  ],
+  "main": "./lib/net.ts",
+  "types": "./lib/net.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/net.ts",
+      "import": "./lib/net.ts"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1"
+  }
+}

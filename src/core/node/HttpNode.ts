@@ -1,17 +1,16 @@
 import type { MethodConfig } from '../decorators/Annotations';
-import { GlobalNet, getClassNetConfig, getMethodConfig, hasSendConfig } from '../decorators/Annotations';
+import { GlobalNet, getClassConfig, getMethodConfig, hasSendConfig } from '../decorators/Annotations';
 import { buildSendData, applyReceiveData } from '../serialize/Serialize';
 import type { RequestProtocol, ResponseProtocol } from '../types/Protocol';
 import { createRequestProtocol } from '../types/Protocol';
 
-export type { ClassNetConfig, MethodNetConfig } from '../decorators/Annotations';
 export { GlobalNet } from '../decorators/Annotations';
 
 async function sendRequest(
   url: string,
   data: RequestProtocol,
-  timeout: number,
-  headers: Record<string, string>
+  init: RequestInit,
+  timeout: number = 30000
 ): Promise<ResponseProtocol | null> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -20,10 +19,10 @@ async function sendRequest(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...headers,
     },
     body: JSON.stringify(data),
     signal: controller.signal,
+    ...init,
   };
 
   try {
@@ -41,11 +40,7 @@ async function sendRequest(
 }
 
 export function net<T extends object>(instance: T): T {
-  const classConfig = getClassNetConfig(instance);
-
-  const baseUrl = classConfig?.baseUrl || GlobalNet.baseUrl || '';
-  const defaultTimeout = classConfig?.timeout || GlobalNet.timeout;
-  const defaultHeaders = { ...GlobalNet.headers, ...classConfig?.headers };
+  const classConfig = getClassConfig(instance);
 
   return new Proxy(instance, {
     get(target: T, prop: string | symbol) {
@@ -68,9 +63,12 @@ export function net<T extends object>(instance: T): T {
           return;
         }
 
-        const methodNet = methodConfig.net || {};
-        const timeout = methodNet.timeout || defaultTimeout;
-        const routeName = methodNet.name || methodName;
+        const routeName = methodConfig.name;
+        const mergedInit: RequestInit = {
+          ...GlobalNet.config.net,
+          ...classConfig.net,
+          ...methodConfig.net,
+        };
 
         const requestProtocol = buildRequestProtocol(
           routeName,
@@ -80,10 +78,9 @@ export function net<T extends object>(instance: T): T {
         );
 
         const responseProtocol = await sendRequest(
-          `${baseUrl}/${routeName}`,
+          `${methodConfig.baseUrl}/${routeName}`,
           requestProtocol,
-          timeout,
-          defaultHeaders
+          mergedInit
         );
 
         if (responseProtocol) {
@@ -91,8 +88,8 @@ export function net<T extends object>(instance: T): T {
             throw new Error(`${responseProtocol.Exception.code}: ${responseProtocol.Exception.message}`);
           }
 
-          if (methodConfig.receivePaths.length > 0 && responseProtocol.Actor) {
-            applyReceiveData(target, responseProtocol.Actor, methodConfig.receivePaths);
+          if (methodConfig.receive.length > 0 && responseProtocol.Actor) {
+            applyReceiveData(target, responseProtocol.Actor, methodConfig.receive);
           }
 
           return responseProtocol.Result;
@@ -117,8 +114,8 @@ function buildRequestProtocol(
   });
 
   let instanceData: Record<string, unknown> | undefined;
-  if (methodConfig.sendPaths.length > 0) {
-    instanceData = buildSendData(instance, methodConfig.sendPaths);
+  if (methodConfig.send.length > 0) {
+    instanceData = buildSendData(instance, methodConfig.send);
   }
 
   return createRequestProtocol(routeName, params, instanceData);

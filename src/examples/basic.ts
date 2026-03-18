@@ -1,17 +1,27 @@
-import { MetaClass, MetaMethod, Receive, Send } from "../core";
+import { NodeManager, NodeClass, NodeMethod, Send, Receive } from "../core";
+import { OperateType } from "../core/decorators/Method";
+import { EndpointGlobal } from "../core/node/EndpointGlobal";
 
-@MetaClass()
-class User{
-  constructor(){
-    console.log('User constructor');
-  }
+EndpointGlobal.config = {
+  endpoint: 'http://localhost:8080',
+}
+
+@NodeClass()
+class UserService {
   username: string = '';
-  password: string = '';
+  token: string = '';
   isLogin: boolean = false;
 
-  // 抽象方法不能应用修饰器，修饰器只能用于方法的实现上
-  @MetaMethod({send: []})
-  async login(username: string, password: string): Promise<boolean>{
-    return Promise.resolve(true);
+  @NodeMethod({
+    request: {
+      actor: { username: OperateType.Opaque, token: OperateType.Opaque },
+      parameters: { username: OperateType.Opaque, password: OperateType.Opaque }
+    },
+    response: {
+      actor: { isLogin: OperateType.Opaque }
+    }
+  })
+  async login(_username: string, _password: string): Promise<boolean> {
+    return true;
   }
 }

@@ -29,7 +29,7 @@ class User {
     },
   })
   async getUser(): Promise<void> {
-    if(this.id == '123' && this.password == '123456'){
+    if(this.id == '123' && this.password == '1234'){
       this.name = 'Ether';
       this.email = 'Ether@example.com';
       this.password = '';

@@ -85,16 +85,11 @@ export class EndpointGateway {
     Logger.info('Starting gateway');
     this._running = true;
 
-    for (const endpoint of Object.values(this._endpointRegistry)) {
+    for (const endpoint of this._endpointRegistry.values()) {
       console.log("EndpointGateway start", endpoint.config.endpoint);
       await EndpointGateway.getOrCreateNetInstance(endpoint);
     }
     return new Promise((resolve) => {
-      if (this._netPool.size === 0) {
-        Logger.info('No net instances to start, resolving immediately');
-        resolve();
-        return;
-      }
       this._resolveEmpty = resolve;
       Logger.info('Gateway started, waiting for net instances to stop');
     });

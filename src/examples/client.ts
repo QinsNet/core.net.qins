@@ -30,11 +30,6 @@ class User {
     },
   })
   async getUser(): Promise<void> {
-    if(this.id == '123' && this.password == '123456'){
-      this.name = 'Ether';
-      this.email = 'Ether@example.com';
-      this.password = '';
-    }
     return Promise.resolve();
   }
 
@@ -74,7 +69,7 @@ void User;
 export async function main() {
   const user = new User();
   user.id = '123';
-  user.password = '123456';
+  user.password = '1234';
 
   console.log('Sending request with id:', user.id);
 
@@ -84,8 +79,8 @@ export async function main() {
     console.log('  name:', JSON.stringify(user));
     const pack = new Pack()
     pack.id = 'aaaa';
-    await user.addPackage(pack);
-    console.log('  packages:', JSON.stringify(user));
+    // await user.addPackage(pack);
+    // console.log('  packages:', JSON.stringify(user));
   } catch (error) {
     console.error('Error:', error);
   }

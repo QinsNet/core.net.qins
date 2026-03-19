@@ -1,23 +1,27 @@
-import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../protocol/Protocol';
-import { EndpointGateway } from './EndpointGateway';
-import type { NodeEndpointConfig, NodeClassConfig, NodeMethodConfig, NetConfig } from '../config';
-import { mergeConfigs } from '../config';
-import { ObjectFilter } from '../protocol/PathProtocol';
-import { EndpointGlobal } from './EndpointGlobal';
+import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
+import { EndpointGateway } from '../EndpointGateway';
+import type { EndpointConfig, ActorConfig, MethodConfig, NetConfig } from '../../config';
+import { mergeConfigs } from '../../config';
+import { ObjectFilter } from './PathProtocol';
+import { EndpointGlobal } from '../EndpointGlobal';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { Logger } from '../util/Logger';
-import { ProtocolBuilder } from '../util/Protocol';
-import { OperateType } from '../decorators/Method';
+import { Logger } from '../../util/Logger';
+import { ProtocolBuilder } from '../../util/Protocol';
+import { OperateType } from '../../decorators/Method';
+import { IEndpoint } from '../IEndpoint';
 
-export class Endpoint {
-  config: NodeEndpointConfig = {} as NodeEndpointConfig;
+export class PathEndpoint implements IEndpoint {
+  config: EndpointConfig = {} as EndpointConfig;
 
   register() {
     this.config = mergeConfigs(EndpointGlobal.config, this.config.classConfig, this.config.methodConfig);
     EndpointGateway.registerEndpoint(this);
     Logger.debug('Endpoint register', this.config as unknown as Record<string, unknown>);
   }
-
+  unregister(): void {
+    EndpointGateway.unregisterEndpoint(this.config.endpoint);
+    Logger.debug('Endpoint unregister', this.config as unknown as Record<string, unknown>);
+  }
   async request(instance: object, ...args: unknown[]): Promise<unknown> {
     Logger.info('Endpoint request starting', {
       endpoint: this.config.endpoint, 
@@ -180,4 +184,4 @@ export class Endpoint {
   }
 }
 
-export type { NetConfig, NodeClassConfig, NodeMethodConfig, NodeEndpointConfig };
+export type { NetConfig, ActorConfig as NodeClassConfig, MethodConfig as NodeMethodConfig, EndpointConfig as NodeEndpointConfig };

@@ -1,27 +1,56 @@
 import { ResponsePact, RequestPact } from "../decorators/Method";
 import { getNetTypeFromEndpoint, getOriginFromEndpoint } from "../util/Netutil";
 import { TypeProtocol } from "../protocol/Protocol";
-
+export enum HTTPRequestFramework {
+  Fetch = 'fetch',
+}
+export enum HTTPServiceFramework {
+  Express = 'express',
+}
+export enum WSFramework {
+  WS = 'ws',
+}
+export enum EndpointType {
+  Path = 'path',
+}
+export interface ProtocolConfig{
+  type?: EndpointType;
+}
 export interface NetConfig {
   endpoint?: string;
   properties?: RequestInit;
   timeout?: number;
+  framework?: {
+    request?: HTTPRequestFramework;
+    service?: HTTPServiceFramework;
+    ws?: WSFramework;
+  }
+  cors?: CorsConfig;
+  listen?: boolean;
 }
 export interface RemoteConfig {
   host: string;
-  type: string;
+  protocol: string;
 }
-export interface GlobalEndpointConfig extends NetConfig {
+export interface GlobalEndpointConfig extends NetConfig, ProtocolConfig {
   name?: string;
-  listen?: boolean;
 }
 
-export interface NodeClassConfig extends NetConfig {
+export interface CorsConfig {
+  origin?: string[];
+  methods?: string[];
+  allowedHeaders?: string[];
+  exposedHeaders?: string[];
+  credentials?: boolean;
+  maxAge?: number;
+}
+
+export interface ActorConfig extends NetConfig, ProtocolConfig {
   name?: string;
   actor?: TypeProtocol<unknown>;
 }
 
-export interface NodeMethodConfig extends NetConfig {
+export interface MethodConfig extends NetConfig, ProtocolConfig {
   name?: string;
   request?: RequestPact | string;
   response?: ResponsePact | string;
@@ -32,7 +61,7 @@ export interface NodeMethodConfig extends NetConfig {
   isStatic?: boolean;
 }
 
-export interface NodeEndpointConfig extends NetConfig, RemoteConfig {
+export interface EndpointConfig extends NetConfig, RemoteConfig, ProtocolConfig {
   name: string;
   endpoint: string;
   properties: RequestInit;
@@ -42,22 +71,27 @@ export interface NodeEndpointConfig extends NetConfig, RemoteConfig {
   result: TypeProtocol<unknown>;
   isStatic: boolean;
   descriptor: PropertyDescriptor;
+  framework: {
+    request: HTTPRequestFramework;
+    service: HTTPServiceFramework;
+    ws: WSFramework;
+  }
+  listen: boolean;
 
-  classConfig: NodeClassConfig;
-  methodConfig: NodeMethodConfig;
+  classConfig: ActorConfig;
+  methodConfig: MethodConfig;
   request: RequestPact;
   response: ResponsePact;
 }
 
 export function mergeConfigs(
   globalConfig: GlobalEndpointConfig,
-  classConfig: NodeClassConfig,
-  methodConfig: NodeMethodConfig
-): NodeEndpointConfig {
+  classConfig: ActorConfig,
+  methodConfig: MethodConfig
+): EndpointConfig {
   const config = {
     endpoint: '',
     host: '',
-    type: '',
     classConfig: classConfig,
     methodConfig: methodConfig,
     request: methodConfig.request ?? {},
@@ -70,7 +104,13 @@ export function mergeConfigs(
     name: methodConfig.name!,
     isStatic: methodConfig.isStatic!,
     descriptor: methodConfig.descriptor!,
-  } as NodeEndpointConfig;
+    framework: { request: methodConfig.framework?.request || classConfig.framework?.request || globalConfig.framework?.request || HTTPRequestFramework.Fetch, 
+      service: methodConfig.framework?.service || classConfig.framework?.service || globalConfig.framework?.service || HTTPServiceFramework.Express, 
+      ws: methodConfig.framework?.ws || classConfig.framework?.ws || globalConfig.framework?.ws || WSFramework.WS },
+    cors: methodConfig.cors || classConfig.cors || globalConfig.cors || {},
+    type: methodConfig.type || classConfig.type || globalConfig.type || EndpointType.Path,
+    listen: methodConfig.listen || classConfig.listen || globalConfig.listen || false,
+  } as EndpointConfig;
   let endpoint = '';
   if(globalConfig.endpoint){
     endpoint = globalConfig.endpoint + '/' + classConfig.name + '/' + methodConfig.name;
@@ -83,6 +123,6 @@ export function mergeConfigs(
   }
   config.endpoint = endpoint;
   config.host = getOriginFromEndpoint(config.endpoint);
-  config.type = getNetTypeFromEndpoint(config.endpoint);
+  config.protocol = getNetTypeFromEndpoint(config.endpoint);
   return config;
 }

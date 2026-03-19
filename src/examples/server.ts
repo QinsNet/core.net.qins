@@ -1,12 +1,11 @@
 import 'reflect-metadata';
-import { EndpointGlobal, EndpointGateway, OperateType } from '../core';
+import { EndpointGlobal, EndpointGateway, OperateType } from '../../lib/qins-net/net';
 import { Pack } from './pack';
-import { Method } from '../core/decorators/Method';
-import { Actor } from '../core/decorators/Actor';
+import { Method } from '../../lib/qins-net/decorators/Method';
+import { Actor } from '../../lib/qins-net/decorators/Actor';
 
 EndpointGlobal.config.listen = true;
-
-@Actor({ endpoint: 'http://localhost:8080/user' })
+@Actor({ endpoint: 'http://localhost:8080/user'})
 class User {
   id: string = '';
   name: string = '';
@@ -92,6 +91,7 @@ async function main() {
   
   console.log('\nGateway is now running and waiting...');
   console.log('Press Ctrl+C to stop.');
+  console.log(User)
 }
 
 main().catch(console.error);

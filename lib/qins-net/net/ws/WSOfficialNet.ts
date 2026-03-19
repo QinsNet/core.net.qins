@@ -1,9 +1,10 @@
 import { serialize } from 'class-transformer';
-import { EndpointGateway } from '../node/EndpointGateway';
-import type { RequestProtocol, ResponseProtocol } from '../protocol/Protocol';
-import type { INet } from './INet';
-import { Logger } from '../util/Logger';
-import { ProtocolBuilder } from '../util/Protocol';
+import { EndpointGateway } from '../../endpoint/EndpointGateway';
+import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
+import type { INet } from '../INet';
+import { Logger } from '../../util/Logger';
+import { ProtocolBuilder } from '../../util/Protocol';
+import type { CorsConfig } from '../../config';
 
 type WsServer = {
   server: import('http').Server;
@@ -28,47 +29,47 @@ async function createWsServer(
 
   wss.on('connection', (ws, req) => {
     const clientIp = req.socket.remoteAddress;
-    Logger.info('WebSocket client connected', { clientIp, clientCount: clients.size + 1 });
-    
+    Logger.info('WSOfficialNet: WebSocket client connected', { clientIp, clientCount: clients.size + 1 });
+
     clients.add(ws);
     ws.on('message', async (rawData) => {
       await handler(ws, rawData);
     });
     ws.on('close', () => {
       clients.delete(ws);
-      Logger.info('WebSocket client disconnected', { clientIp, clientCount: clients.size });
+      Logger.info('WSOfficialNet: WebSocket client disconnected', { clientIp, clientCount: clients.size });
     });
     ws.on('error', (err) => {
       clients.delete(ws);
-      Logger.error('WebSocket client error', { clientIp, error: err.message });
+      Logger.error('WSOfficialNet: WebSocket client error', { clientIp, error: err.message });
     });
   });
 
   return new Promise((resolve, reject) => {
     server.listen(port, hostname, () => {
-      Logger.info('WebSocket server listening', { hostname, port });
+      Logger.info('WSOfficialNet: WebSocket server listening', { hostname, port });
       resolve({
         server,
         wss,
         clients,
         close: () => new Promise<void>((res, rej) => {
-          Logger.info('Closing WebSocket server', { hostname, port, clientCount: clients.size });
+          Logger.info('WSOfficialNet: Closing WebSocket server', { hostname, port, clientCount: clients.size });
           for (const client of clients) {
             client.close();
           }
           clients.clear();
           wss.close((err) => {
             if (err) {
-              Logger.error('WebSocket server close error', { error: err.message });
+              Logger.error('WSOfficialNet: WebSocket server close error', { error: err.message });
               rej(err);
               return;
             }
             server.close((err) => {
               if (err) {
-                Logger.error('HTTP server close error', { error: err.message });
+                Logger.error('WSOfficialNet: HTTP server close error', { error: err.message });
                 rej(err);
               } else {
-                Logger.info('WebSocket server closed', { hostname, port });
+                Logger.info('WSOfficialNet: WebSocket server closed', { hostname, port });
                 res();
               }
             });
@@ -77,44 +78,55 @@ async function createWsServer(
       });
     });
     server.on('error', (err) => {
-      Logger.error('WebSocket server error', { hostname, port, error: err.message });
+      Logger.error('WSOfficialNet: WebSocket server error', { hostname, port, error: err.message });
       reject(err);
     });
   });
 }
 
-export class WsNet implements INet {
+export class WSOfficialNet implements INet {
+  private _cors: CorsConfig = { origin: [], methods: [], allowedHeaders: [], exposedHeaders: [], credentials: false, maxAge: 0 };
   private _server: WsServer | null = null;
+
+  addCors(cors?: CorsConfig): void {
+    if (!cors) return;
+    this._cors.allowedHeaders?.push(...cors.allowedHeaders || []);
+    this._cors.exposedHeaders?.push(...cors.exposedHeaders || []);
+    this._cors.origin?.push(...cors.origin || []);
+    this._cors.methods?.push(...cors.methods || []);
+    this._cors.credentials = cors.credentials || this._cors.credentials;
+    this._cors.maxAge = cors.maxAge || this._cors.maxAge;
+  }
 
   async request(
     data: RequestProtocol,
-    _init: RequestInit = {},
+    _options?: object,
     timeout: number = 30000
   ): Promise<ResponseProtocol> {
     const { WebSocket } = await import('ws');
 
-    Logger.info('WebSocket request starting', { 
-      endpoint: data.endpoint, 
+    Logger.info('WSOfficialNet: WebSocket request starting', {
+      endpoint: data.endpoint,
       method: data.method,
-      timeout 
+      timeout
     });
 
     return new Promise((resolve) => {
       const fullUrl = data.endpoint.replace(/^http/, 'ws');
-      Logger.debug('WebSocket connecting', { url: fullUrl });
+      Logger.debug('WSOfficialNet: WebSocket connecting', { url: fullUrl });
       const ws = new WebSocket(fullUrl);
 
       const timeoutId = setTimeout(() => {
-        Logger.warn('WebSocket request timeout', { endpoint: data.endpoint, timeout });
+        Logger.warn('WSOfficialNet: WebSocket request timeout', { endpoint: data.endpoint, timeout });
         ws.close();
-        resolve(ProtocolBuilder.buildException(data,{
+        resolve(ProtocolBuilder.buildException(data, {
           code: 408,
           message: 'Request Timeout',
         }));
       }, timeout);
 
       ws.on('open', () => {
-        Logger.debug('WebSocket connected, sending request', { endpoint: data.endpoint });
+        Logger.debug('WSOfficialNet: WebSocket connected, sending request', { endpoint: data.endpoint });
         ws.send(JSON.stringify(data));
       });
 
@@ -124,18 +136,18 @@ export class WsNet implements INet {
         try {
           const response = JSON.parse(rawData.toString()) as ResponseProtocol;
           if (response.exception) {
-            Logger.error('WebSocket request failed', { 
-              endpoint: data.endpoint, 
-              code: response.exception.code, 
-              message: response.exception.message 
+            Logger.error('WSOfficialNet: WebSocket request failed', {
+              endpoint: data.endpoint,
+              code: response.exception.code,
+              message: response.exception.message
             });
           } else {
-            Logger.info('WebSocket request succeeded', { endpoint: data.endpoint });
+            Logger.info('WSOfficialNet: WebSocket request succeeded', { endpoint: data.endpoint });
           }
           resolve(response);
         } catch {
-          Logger.error('WebSocket response parse error', { endpoint: data.endpoint });
-          resolve(ProtocolBuilder.buildException(data,{
+          Logger.error('WSOfficialNet: WebSocket response parse error', { endpoint: data.endpoint });
+          resolve(ProtocolBuilder.buildException(data, {
             code: 500,
             message: 'Invalid Response',
           }));
@@ -144,11 +156,11 @@ export class WsNet implements INet {
 
       ws.on('error', (error: Error) => {
         clearTimeout(timeoutId);
-        Logger.error('WebSocket connection error', { 
-          endpoint: data.endpoint, 
-          error: error.message 
+        Logger.error('WSOfficialNet: WebSocket connection error', {
+          endpoint: data.endpoint,
+          error: error.message
         });
-        resolve(ProtocolBuilder.buildException(data,{
+        resolve(ProtocolBuilder.buildException(data, {
           code: 500,
           message: error.message,
         }));
@@ -165,14 +177,14 @@ export class WsNet implements INet {
   }
 
   async start(host: string): Promise<void> {
-    const { EndpointGlobal } = await import('../node/EndpointGlobal');
+    const { EndpointGlobal } = await import('../../endpoint/EndpointGlobal');
     if (EndpointGlobal.config.listen === false) {
-      Logger.debug('WebSocket listen disabled by config');
+      Logger.debug('WSOfficialNet: WebSocket listen disabled by config');
       return;
     }
 
     if (this._server) {
-      Logger.warn('WebSocket server already started');
+      Logger.warn('WSOfficialNet: WebSocket server already started');
       return;
     }
 
@@ -180,29 +192,29 @@ export class WsNet implements INet {
     const hostname = url.hostname || '0.0.0.0';
     const port = parseInt(url.port) || 8080;
 
-    Logger.info('Starting WebSocket server', { hostname, port });
+    Logger.info('WSOfficialNet: Starting WebSocket server', { hostname, port });
     this._server = await createWsServer(port, hostname, async (ws, rawData) => {
       const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       try {
         const request: RequestProtocol = JSON.parse(rawData.toString());
-        Logger.info('WebSocket request received', { 
-          requestId, 
+        Logger.info('WSOfficialNet: WebSocket request received', {
+          requestId,
           endpoint: request.endpoint,
-          method: request.method 
+          method: request.method
         });
-        
+
         const response = await EndpointGateway.service(request);
         ws.send(serialize(response));
-        
-        Logger.info('WebSocket response sent', { 
-          requestId, 
+
+        Logger.info('WSOfficialNet: WebSocket response sent', {
+          requestId,
           endpoint: request.endpoint,
-          hasException: !!response.exception 
+          hasException: !!response.exception
         });
       } catch (error) {
-        Logger.error('WebSocket request parse error', { 
-          requestId, 
-          error: error instanceof Error ? error.message : String(error) 
+        Logger.error('WSOfficialNet: WebSocket request parse error', {
+          requestId,
+          error: error instanceof Error ? error.message : String(error)
         });
         ws.send(serialize({
           exception: {
@@ -216,7 +228,7 @@ export class WsNet implements INet {
 
   async stop(): Promise<void> {
     if (!this._server) {
-      Logger.debug('WebSocket server not running, nothing to stop');
+      Logger.debug('WSOfficialNet: WebSocket server not running, nothing to stop');
       return;
     }
     await this._server.close();

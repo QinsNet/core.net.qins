@@ -1,6 +1,6 @@
-import { OperateType, RequestPact, ResponsePact } from "../decorators/Method";
-import { setValueByPath } from "../util/ObjectUtil";
-import { ExceptionProtocol, ParameterProtocol, RequestProtocol, ResponseProtocol } from "./Protocol";
+import { OperateType, RequestPact, ResponsePact } from "../../decorators/Method";
+import { setValueByPath } from "../../util/ObjectUtil";
+import { ExceptionProtocol, ParameterProtocol, RequestProtocol, ResponseProtocol } from "../../protocol/Protocol";
 
 export class PathRequestProtocol implements RequestProtocol {
     public version: string = '1'

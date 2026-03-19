@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import { EndpointGlobal, OperateType } from '../core';
-import { Actor } from '../core/decorators/Actor';
-import { Method } from '../core/decorators/Method';
+import { EndpointGlobal, OperateType } from '../../lib/qins-net/net';
+import { Actor } from '../../lib/qins-net/decorators/Actor';
+import { Method } from '../../lib/qins-net/decorators/Method';
 import { Pack } from './pack';
 
 EndpointGlobal.config.listen = false;
@@ -71,7 +71,7 @@ class User {
 
 void User;
 
-async function main() {
+export async function main() {
   const user = new User();
   user.id = '123';
   user.password = '123456';
@@ -90,5 +90,3 @@ async function main() {
     console.error('Error:', error);
   }
 }
-
-main();

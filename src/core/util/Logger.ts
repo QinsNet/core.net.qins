@@ -1,0 +1,65 @@
+import winston from 'winston';
+
+const { combine, timestamp, printf, colorize, errors } = winston.format;
+
+const logFormat = printf(({ level, message, timestamp, stack, ...metadata }) => {
+  let msg = `${timestamp} [${level}]: ${message}`;
+  
+  if (Object.keys(metadata).length > 0) {
+    msg += ` ${JSON.stringify(metadata)}`;
+  }
+  
+  if (stack) {
+    msg += `\n${stack}`;
+  }
+  
+  return msg;
+});
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL ?? 'debug',
+  format: combine(
+    errors({ stack: true }),
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    logFormat
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: combine(
+        colorize(),
+        logFormat
+      )
+    }),
+    new winston.transports.File({
+      filename: 'logs/error.log',
+      level: 'error'
+    }),
+    new winston.transports.File({
+      filename: 'logs/combined.log'
+    })
+  ]
+});
+
+export const Logger = {
+  info: (message: string, meta?: Record<string, unknown>) => {
+    logger.info(message, meta);
+  },
+  
+  error: (message: string, meta?: Record<string, unknown>) => {
+    logger.error(message, meta);
+  },
+  
+  warn: (message: string, meta?: Record<string, unknown>) => {
+    logger.warn(message, meta);
+  },
+  
+  debug: (message: string, meta?: Record<string, unknown>) => {
+    logger.debug(message, meta);
+  },
+  
+  verbose: (message: string, meta?: Record<string, unknown>) => {
+    logger.verbose(message, meta);
+  }
+};
+
+export default logger;

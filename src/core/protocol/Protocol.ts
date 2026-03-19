@@ -1,3 +1,14 @@
+export interface TypeProtocol<T> {
+    name: string;
+    type: Function;
+    serialize(instance: T): string;
+    deserialize(serialized: string|Object): T;
+}
+export interface ParameterProtocol {
+  name: string;
+  type: string;
+  properties?: unknown
+}
 export interface ExceptionProtocol {
   code: number;
   message: string;
@@ -5,26 +16,26 @@ export interface ExceptionProtocol {
 export interface RequestProtocol {
   version?: string;
   endpoint: string;
-  actor?: {
-    [key: string]: unknown;
+  actor: {
+    type: string,
+    properties?: unknown
   };
   method: string;
-  parameters?: {
-    name: string;
-    value: unknown;
-  }[];
+  parameters: {[key: string]: ParameterProtocol};
 }
 
 export interface ResponseProtocol {
   version?: string;
   endpoint: string;
-  result?: unknown;
-  actor?: {
-    [key: string]: unknown;
+  result: {
+    type: string,
+    properties?: unknown
   };
-  parameters?: {
-    name: string;
-    value: unknown;
-  }[];
+  actor: {
+    type: string,
+    properties?: unknown
+  };
+  parameters: {[key: string]: ParameterProtocol};
   exception?: ExceptionProtocol;
 }
+

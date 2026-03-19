@@ -1,5 +1,6 @@
 import { ResponsePact, RequestPact } from "../decorators/Method";
 import { getNetTypeFromEndpoint, getOriginFromEndpoint } from "../util/Netutil";
+import { TypeProtocol } from "../protocol/Protocol";
 
 export interface NetConfig {
   endpoint?: string;
@@ -12,22 +13,38 @@ export interface RemoteConfig {
 }
 export interface GlobalEndpointConfig extends NetConfig {
   name?: string;
+  listen?: boolean;
 }
 
 export interface NodeClassConfig extends NetConfig {
   name?: string;
+  actor?: TypeProtocol<unknown>;
 }
 
 export interface NodeMethodConfig extends NetConfig {
   name?: string;
-  request?: RequestPact;
-  response?: ResponsePact;
-  paramsName?: string[];
+  request?: RequestPact | string;
+  response?: ResponsePact | string;
+  params?: { name: string, type: TypeProtocol<unknown> }[];
+  result?: TypeProtocol<unknown>;
+  handler?: (instance: object, ...args: unknown[]) => Promise<unknown>;
+  descriptor?: PropertyDescriptor;
+  isStatic?: boolean;
 }
 
 export interface NodeEndpointConfig extends NetConfig, RemoteConfig {
-  classConfig?: NodeClassConfig;
-  methodConfig?: NodeMethodConfig;
+  name: string;
+  endpoint: string;
+  properties: RequestInit;
+  timeout: number;
+  actor: TypeProtocol<unknown>;
+  params: { name: string, type: TypeProtocol<unknown> }[];
+  result: TypeProtocol<unknown>;
+  isStatic: boolean;
+  descriptor: PropertyDescriptor;
+
+  classConfig: NodeClassConfig;
+  methodConfig: NodeMethodConfig;
   request: RequestPact;
   response: ResponsePact;
 }
@@ -47,6 +64,12 @@ export function mergeConfigs(
     response: methodConfig.response ?? {},
     properties: methodConfig.properties ?? classConfig.properties ?? globalConfig.properties ?? {},
     timeout: methodConfig.timeout ?? classConfig.timeout ?? globalConfig.timeout ?? 10000,
+    actor: classConfig.actor!,
+    params: methodConfig.params!,
+    result: methodConfig.result!,
+    name: methodConfig.name!,
+    isStatic: methodConfig.isStatic!,
+    descriptor: methodConfig.descriptor!,
   } as NodeEndpointConfig;
   let endpoint = '';
   if(globalConfig.endpoint){

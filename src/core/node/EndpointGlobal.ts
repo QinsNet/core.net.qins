@@ -1,5 +1,5 @@
 import { GlobalEndpointConfig } from "../config";
 
 export class EndpointGlobal {
-    static config: GlobalEndpointConfig = {}
+    static config: GlobalEndpointConfig = { listen: false }
 }

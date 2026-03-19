@@ -8,5 +8,5 @@ export function getNetTypeFromEndpoint(endpoint: string): 'http' | 'ws' {
 
 export function getOriginFromEndpoint(endpoint: string): string {
   const url = new URL(endpoint);
-    return url.host;
+  return url.host;
 }

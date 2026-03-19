@@ -172,7 +172,7 @@ export class EndpointGateway {
     }
     Logger.info('Creating net instance', { origin });
     const net = await newNetInstance(origin, endpoint.config.listen, endpoint.config.framework);
-    await net.start?.(origin);
+    await net.start?.(origin, endpoint.config.cors);
     this._netPool.set(origin, net);
     await this.emit('register', net, origin);
     return net;

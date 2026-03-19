@@ -107,7 +107,7 @@ export function mergeConfigs(
     framework: { request: methodConfig.framework?.request || classConfig.framework?.request || globalConfig.framework?.request || HTTPRequestFramework.Fetch, 
       service: methodConfig.framework?.service || classConfig.framework?.service || globalConfig.framework?.service || HTTPServiceFramework.Express, 
       ws: methodConfig.framework?.ws || classConfig.framework?.ws || globalConfig.framework?.ws || WSFramework.WS },
-    cors: methodConfig.cors || classConfig.cors || globalConfig.cors || {},
+    cors: methodConfig.cors || classConfig.cors || globalConfig.cors || undefined,
     type: methodConfig.type || classConfig.type || globalConfig.type || EndpointType.Path,
     listen: methodConfig.listen || classConfig.listen || globalConfig.listen || false,
   } as EndpointConfig;

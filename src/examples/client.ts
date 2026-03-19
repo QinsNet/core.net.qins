@@ -79,8 +79,8 @@ export async function main() {
     console.log('  name:', JSON.stringify(user));
     const pack = new Pack()
     pack.id = 'aaaa';
-    // await user.addPackage(pack);
-    // console.log('  packages:', JSON.stringify(user));
+    await user.addPackage(pack);
+    console.log('  packages:', JSON.stringify(user));
   } catch (error) {
     console.error('Error:', error);
   }

@@ -86,12 +86,15 @@ export class ExpressServiceNet implements IServiceNet {
 
   addCors(cors?: CorsConfig): void {
     if (!cors) return;
-    this._cors.origin?.push(...cors.origin || []);
-    this._cors.methods?.push(...cors.methods || []);
-    this._cors.allowedHeaders?.push(...cors.allowedHeaders || []);
-    this._cors.exposedHeaders?.push(...cors.exposedHeaders || []);
-    if (cors.credentials) this._cors.credentials = cors.credentials;
-    if (cors.maxAge) this._cors.maxAge = cors.maxAge;
+    else if (!this._cors) this._cors = cors;
+    else{
+      this._cors.origin?.push(...cors.origin || []);
+      this._cors.methods?.push(...cors.methods || []);
+      this._cors.allowedHeaders?.push(...cors.allowedHeaders || []);
+      this._cors.exposedHeaders?.push(...cors.exposedHeaders || []);
+      if (cors.credentials) this._cors.credentials = cors.credentials;
+      if (cors.maxAge) this._cors.maxAge = cors.maxAge;
+    }
     Logger.debug('ExpressServiceNet: CORS config added', { cors: this._cors });
   }
 

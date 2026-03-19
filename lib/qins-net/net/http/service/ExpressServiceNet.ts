@@ -82,7 +82,7 @@ async function createHttpServer(
 
 export class ExpressServiceNet implements IServiceNet {
   private _server: HttpServer | null = null;
-  private _cors: CorsConfig = { origin: [], methods: [], allowedHeaders: [], exposedHeaders: [], credentials: false, maxAge: 0 };
+  private _cors?: CorsConfig;
 
   addCors(cors?: CorsConfig): void {
     if (!cors) return;
@@ -110,7 +110,7 @@ export class ExpressServiceNet implements IServiceNet {
 
     const app = createExpressApp(this._cors);
 
-    app.post('*', async (req: Request, res: Response) => {
+    app.post('*splat', async (req: Request, res: Response) => {
       const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       Logger.debug('ExpressServiceNet: HTTP request received', {
         requestId,

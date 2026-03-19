@@ -7,12 +7,12 @@
     "dist",
     "lib"
   ],
-  "main": "./lib/net.ts",
-  "types": "./lib/net.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/net.ts",
-      "import": "./lib/net.ts"
+      "types": "./src/index.d.ts",
+      "import": "./src/index.ts"
     }
   },
   "scripts": {
@@ -20,7 +20,8 @@
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",
     "server": "tsx src/examples/server.ts",
-    "client": "tsx src/examples/client.ts"
+    "client": "tsx src/examples/client.ts",
+    "test": "tsx src/examples/test.ts"
   },
   "dependencies": {
     "class-transformer": "^0.5.1",

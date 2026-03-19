@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es2022",
+    "target": "es2015",
     "useDefineForClassFields": false,
     "module": "esnext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["es2015", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "downlevelIteration": true,
+    "esModuleInterop": true,
 
     /* Decorator support */
     "experimentalDecorators": true,
@@ -12,8 +14,8 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
+    "allowImportingTsExtensions": false,
+    "isolatedModules": false,
     "moduleDetection": "force",
     "noEmit": true,
 

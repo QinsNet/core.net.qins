@@ -1,17 +1,20 @@
 import 'reflect-metadata';
-import { EndpointGlobal, EndpointGateway, NodeClass, NodeMethod, OperateType } from '../core';
-import { Type } from 'class-transformer';
+import { EndpointGlobal, EndpointGateway, OperateType } from '../core';
+import { Pack } from './pack';
+import { Method } from '../core/decorators/Method';
+import { Actor } from '../core/decorators/Actor';
 
 EndpointGlobal.config.listen = true;
 
-@NodeClass({ endpoint: 'http://localhost:8080/user' })
+@Actor({ endpoint: 'http://localhost:8080/user' })
 class User {
   id: string = '';
   name: string = '';
   email: string = '';
   password: string = '';
+  packages: Pack[] = [];
 
-  @NodeMethod({
+  @Method({
     request: {
       actor: {
         id: OperateType.Opaque,
@@ -34,6 +37,36 @@ class User {
     }
     return Promise.resolve();
   }
+
+
+    @Method({
+      request: {
+        actor: {},
+        parameters: {
+          pack: {
+            name: OperateType.Opaque,
+          },
+        }
+      },
+      response: {
+        actor: {
+          packages: OperateType.Opaque,
+        },
+        result: {
+          name: OperateType.Opaque,
+          version: OperateType.Opaque,
+        }
+      },
+    })
+    async addPackage(pack: Pack): Promise<Pack> {
+      if(this.id == 'aaaa'){
+        this.packages.push(pack);
+        pack.version = '1.0.0';
+        pack.name = 'test';
+        pack.description = 'test package';
+      }
+      return Promise.resolve(pack);
+    }
 }
 
 EndpointGateway.on('register', (_net, origin) => {

@@ -4,7 +4,7 @@ export default defineConfig({
   build: {
     lib: {
       formats: ['es', 'cjs'],
-      entry: './lib/qins-net/net.ts',
+      entry: './lib/qins-net/a.ts',
       name: 'QinsNet',
       fileName: 'qins-net',
     },

@@ -11,5 +11,3 @@ export type { RequestPact, ResponsePact } from './decorators/Method';
 export { OperateType } from './decorators/Method';
 export type { INet, IRequestNet, IServiceNet } from './net/INet';
 export { Logger } from './util/Logger';
-
-export { main } from './examples/client';

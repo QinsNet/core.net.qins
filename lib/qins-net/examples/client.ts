@@ -85,3 +85,5 @@ export async function main() {
     console.error('Error:', error);
   }
 }
+
+main();

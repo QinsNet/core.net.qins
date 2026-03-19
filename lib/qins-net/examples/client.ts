@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import { EndpointGlobal, OperateType } from '../../lib/qins-net/net';
-import { Actor } from '../../lib/qins-net/decorators/Actor';
-import { Method } from '../../lib/qins-net/decorators/Method';
+import { EndpointGlobal, OperateType } from '../net';
+import { Actor } from '../decorators/Actor';
+import { Method } from '../decorators/Method';
 import { Pack } from './pack';
 
 EndpointGlobal.config.listen = false;

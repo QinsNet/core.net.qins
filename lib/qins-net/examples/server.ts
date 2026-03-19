@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import { EndpointGlobal, EndpointGateway, OperateType } from '../../lib/qins-net/net';
+import { EndpointGlobal, EndpointGateway, OperateType } from '../net';
 import { Pack } from './pack';
-import { Method } from '../../lib/qins-net/decorators/Method';
-import { Actor } from '../../lib/qins-net/decorators/Actor';
+import { Method } from '../decorators/Method';
+import { Actor } from '../decorators/Actor';
 
 EndpointGlobal.config.listen = true;
 @Actor({ endpoint: 'http://localhost:8080/user'})

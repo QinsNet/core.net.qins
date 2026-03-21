@@ -1,11 +1,11 @@
 import { setValueByPath } from "../../util/ObjectUtil";
 import { ExceptionProtocol, ParameterProtocol, RequestProtocol, ResponseProtocol } from "../../protocol/Protocol";
-import { OperateType, RequestPact, ResponsePact } from "../../config/Method";
+import { OperateType, RequestPact, ResponsePact } from "../../config/Action";
 
 export class PathRequestProtocol implements RequestProtocol {
     public version: string = '1'
     constructor(
-        public endpoint: string = '',
+        public node: string = '',
         public method: string = '',
         public actor: {
             type: string,
@@ -23,7 +23,7 @@ export class PathRequestProtocol implements RequestProtocol {
 export class PathResponseProtocol implements ResponseProtocol {
     public version: string = '1'
     constructor(
-        public endpoint: string = '',
+        public node: string = '',
         public actor: {
           type: string,
           properties?: unknown

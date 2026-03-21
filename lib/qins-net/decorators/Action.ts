@@ -1,17 +1,17 @@
 import 'reflect-metadata';
-import { path2json } from '../endpoint/path/Protocol';
+import { path2json } from '../node/path/Protocol';
 import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
-import { MethodProperties, RequestPact, ResponsePact } from '../config/Method';
+import { MethodProperties, RequestPact, ResponsePact } from '../config/Action';
 import { ParameterProperties } from '../config/Parameter';
-import {  getEndpointProperties } from './Actor';
+import {  getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 
 export function Action(properties: Partial<MethodProperties> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {
-    //endpoint
-    const endpointConfig = getEndpointProperties(target, propertyKey);
-    const config = endpointConfig.method;
+    //node
+    const nodeConfig = getNodeProperties(target, propertyKey);
+    const config = nodeConfig.method;
     //name
     config.name = propertyKey;
     //result
@@ -39,7 +39,7 @@ export function Action(properties: Partial<MethodProperties> = {}) {
     }
     //parameters
     mappingParameter(target, propertyKey, config);
-    endpointConfig.method = deepmerge(endpointConfig.method,config);
+    nodeConfig.method = deepmerge(nodeConfig.method,config);
   };
 
   function mappingParameter(target: object, propertyKey: string,config: Partial<MethodProperties>) {

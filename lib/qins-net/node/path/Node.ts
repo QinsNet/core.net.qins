@@ -1,16 +1,16 @@
 import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
-import { Gateway } from '../Gateway';
+import { Gateway } from '../Node';
 import { ObjectFilter } from './Protocol';
 import { Logger } from '../../util/Logger';
 import { ProtocolBuilder } from '../../util/Protocol';
-import { IEndpoint } from '../IEndpoint';
-import { OperateType } from '../../config/Method';
-import { EndpointProperties } from '../../config/Endpoint';
+import { INode } from '../INode';
+import { OperateType } from '../../config/Action';
+import { NodeProperties } from '../../config/Node';
 import deepmerge from 'deepmerge';
 
-export class PathEndpoint implements IEndpoint {
-  config: EndpointProperties;
-  constructor(config: EndpointProperties){
+export class PathNode implements INode {
+  config: NodeProperties;
+  constructor(config: NodeProperties){
     this.config = config;
   }
   register() {
@@ -21,46 +21,46 @@ export class PathEndpoint implements IEndpoint {
     //合并方法级配置
     this.config.net = deepmerge(this.config.net, this.config.method.net || {});
     this.config.protocol = deepmerge(this.config.protocol, this.config.method.protocol || {});
-    //确定endpoint
-    const endpoint = this.config.method.net?.endpoint && this.config.method.net?.endpoint 
-    || this.config.actor.net?.endpoint && this.config.actor.net?.endpoint + '/' + this.config.method.name 
-    || Gateway.config.net.endpoint && Gateway.config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
+    //确定node
+    const node = this.config.method.net?.node && this.config.method.net?.node 
+    || this.config.actor.net?.node && this.config.actor.net?.node + '/' + this.config.method.name 
+    || Gateway.config.net.node && Gateway.config.net.node + '/' + this.config.actor.name + '/' + this.config.method.name
     || this.config.net.netType && this.config.net.host && `${this.config.net.netType}://${this.config.net.host}/${this.config.actor.name}/${this.config.method.name}`;
-    if(!endpoint){
-      throw new Error('Endpoint path is not valid');
+    if(!node){
+      throw new Error('Node path is not valid');
     }
-    this.config.endpoint = endpoint;
-    Gateway.registerEndpoint(this);
-    Logger.debug('Endpoint register', this.config as unknown as Record<string, unknown>);
+    this.config.node = node;
+    Gateway.registerNode(this);
+    Logger.debug('Node register', this.config as unknown as Record<string, unknown>);
   }
   unregister(): void {
-    Gateway.unregisterEndpoint(this.config.endpoint);
-    Logger.debug('Endpoint unregister', this.config as unknown as Record<string, unknown>);
+    Gateway.unregisterNode(this.config.node);
+    Logger.debug('Node unregister', this.config as unknown as Record<string, unknown>);
   }
   async request(instance: object, ...args: unknown[]): Promise<unknown> {
-    Logger.info('Endpoint request starting', {
-      endpoint: this.config.endpoint, 
+    Logger.info('Node request starting', {
+      node: this.config.node, 
       method: this.config.name,
       argCount: args.length 
     });
     
     let request = this.buildRequest(instance, args);
     Logger.debug('Request built', { 
-      endpoint: this.config.endpoint, 
+      node: this.config.node, 
       hasActor: !!request.actor,
       paramCount: request.parameters?.length ?? 0 ,
       request
     });
     let response = await Gateway.request(request, this);
     if (response.exception) {
-      Logger.error('Endpoint request failed', { 
-        endpoint: this.config.endpoint, 
+      Logger.error('Node request failed', { 
+        node: this.config.node, 
         code: response.exception.code, 
         message: response.exception.message 
       });
       throw new Error(JSON.stringify(response));
     } else {
-      Logger.info('Endpoint request completed', { endpoint: this.config.endpoint });
+      Logger.info('Node request completed', { node: this.config.node });
     }
     if(!this.config.method.isStatic && this.config.method.response.actor){
       ObjectFilter(response.actor!.properties,instance, this.config.method.response.actor);
@@ -79,15 +79,15 @@ export class PathEndpoint implements IEndpoint {
   }
   
   async service(request: RequestProtocol): Promise<ResponseProtocol> {
-    Logger.info('Endpoint service starting', { 
-      endpoint: this.config.endpoint, 
+    Logger.info('Node service starting', { 
+      node: this.config.node, 
       method: this.config.name,
       hasActor: !!request.actor 
     });
     
     try {
       if (!this.config.method.handler) {
-        Logger.error('Endpoint service handler not found', { endpoint: this.config.endpoint });
+        Logger.error('Node service handler not found', { node: this.config.node });
         return ProtocolBuilder.buildException(request,{
           code: 404,
           message: 'Not found method',
@@ -97,27 +97,27 @@ export class PathEndpoint implements IEndpoint {
       let instance = this.config.actor.constructor as object;
       if (!this.config.method.isStatic) {
         instance = this.config.actor.type.deserialize(request.actor.properties!) as object;
-        Logger.debug('Instance created from request', { endpoint: this.config.endpoint });
+        Logger.debug('Instance created from request', { node: this.config.node });
       }
       
       const args = this.extractParams(request);
       Logger.debug('Parameters extracted', { 
-        endpoint: this.config.endpoint, 
+        node: this.config.node, 
         argCount: args.length 
       });
       
       const result = await this.config.method.handler(instance, ...args);
       let response = this.buildResponse(instance, args, result);
       
-      Logger.info('Endpoint service completed', { 
-        endpoint: this.config.endpoint,
+      Logger.info('Node service completed', { 
+        node: this.config.node,
         hasResult: result !== undefined 
       });
       
       return response;
     } catch (error) {
-      Logger.error('Endpoint service error', { 
-        endpoint: this.config.endpoint, 
+      Logger.error('Node service error', { 
+        node: this.config.node, 
         error: error instanceof Error ? error.message + error.stack : String(error) 
       });
       return ProtocolBuilder.buildException(request,{
@@ -130,7 +130,7 @@ export class PathEndpoint implements IEndpoint {
   buildRequest(instance: object, args: unknown[]): RequestProtocol {
     const params = this.packageParams(args);
     const request = {
-      endpoint: this.config.endpoint,
+      node: this.config.node,
       actor: {
         type: this.config.actor.name,
         ...(!this.config.method.isStatic && {
@@ -146,7 +146,7 @@ export class PathEndpoint implements IEndpoint {
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
     const params = this.packageParams(args);
     const response = {
-      endpoint: this.config.endpoint,
+      node: this.config.node,
       actor: {
         type: this.config.actor.name,
         ...(!this.config.method.isStatic && {

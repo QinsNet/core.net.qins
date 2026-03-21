@@ -1,5 +1,5 @@
-import { RequestPact, ResponsePact } from "../config/Method";
-import { PathRequestProtocol, PathResponseProtocol } from "../endpoint/path/Protocol";
+import { RequestPact, ResponsePact } from "../config/Action";
+import { PathRequestProtocol, PathResponseProtocol } from "../node/path/Protocol";
 import { ResponseProtocol,RequestProtocol, ExceptionProtocol } from "../protocol/Protocol";
 
 export class ProtocolBuilder{
@@ -13,9 +13,9 @@ export class ProtocolBuilder{
     };
   }
   static buildPathRequest(request: RequestProtocol,path: RequestPact): PathRequestProtocol {
-    return new PathRequestProtocol(request.endpoint,request.method,request.actor,request.parameters,path);
+    return new PathRequestProtocol(request.node,request.method,request.actor,request.parameters,path);
   }
   static buildPathResponse(response: ResponseProtocol,path: ResponsePact): PathResponseProtocol {
-    return new PathResponseProtocol(response.endpoint,response.actor,response.parameters,response.result,path);
+    return new PathResponseProtocol(response.node,response.actor,response.parameters,response.result,path);
   }
 }

@@ -1,6 +1,6 @@
 import { ClassConstructor, ClassTransformOptions, instanceToPlain, plainToClass } from "class-transformer";
 import { TypeProtocol } from "../protocol/Protocol";
-import { Gateway } from "../endpoint/Gateway";
+import { Gateway } from "../node/Node";
 
 export class ClassTransformerTypeProtocol<T> implements TypeProtocol<T> {
     name: string;

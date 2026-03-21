@@ -1,11 +1,11 @@
 import 'reflect-metadata';
-import { EndpointGlobal, EndpointGateway, OperateType } from '../net';
+import { NodeGlobal, NodeGateway, OperateType } from '../net';
 import { Pack } from './pack';
-import { Action } from '../decorators/Method';
+import { Action } from '../decorators/Action';
 import { Actor } from '../decorators/Actor';
 
-EndpointGlobal.config.listen = true;
-@Actor({ endpoint: 'http://localhost:8080/user'})
+NodeGlobal.config.listen = true;
+@Actor({ node: 'http://localhost:8080/user'})
 class User {
   id: string = '';
   name: string = '';
@@ -68,26 +68,26 @@ class User {
     }
 }
 
-EndpointGateway.on('register', (_net, origin) => {
+NodeGateway.on('register', (_net, origin) => {
   console.log(`Net registered: ${origin}`);
 });
 
-EndpointGateway.on('unregister', (_net, origin) => {
+NodeGateway.on('unregister', (_net, origin) => {
   console.log(`Net unregistered: ${origin}`);
 });
 
-EndpointGateway.on('empty', () => {
+NodeGateway.on('empty', () => {
   console.log('All nets stopped.');
 });
 
 async function main() {
-  console.log('Gateway running:', EndpointGateway.running);
-  console.log('Endpoints registered:', EndpointGateway.endpointCount);
+  console.log('Gateway running:', NodeGateway.running);
+  console.log('Nodes registered:', NodeGateway.nodeCount);
   
   console.log('\nStarting gateway...');
-  await EndpointGateway.start();
-  console.log('Gateway started, running:', EndpointGateway.running);
-  console.log('Nets running:', EndpointGateway.netPoolSize);
+  await NodeGateway.start();
+  console.log('Gateway started, running:', NodeGateway.running);
+  console.log('Nets running:', NodeGateway.netPoolSize);
   
   console.log('\nGateway is now running and waiting...');
   console.log('Press Ctrl+C to stop.');

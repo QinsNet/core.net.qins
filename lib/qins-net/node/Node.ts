@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import type { INet } from '../net/INet';
 import type { RequestProtocol, ResponseProtocol, TypeProtocol } from '../protocol/Protocol';
-import type { IEndpoint } from './IEndpoint';
+import type { INode } from './INode';
 import { Logger } from '../util/Logger';
 import { ProtocolBuilder } from '../util/Protocol';
 import { newNetInstance } from '../util/Netutil';
@@ -13,7 +13,7 @@ export type NetEventHandler = (net: INet, origin: string) => void | Promise<void
 export class Gateway {
   private static _running: boolean = false;
   private static _netPool: Map<string, INet> = new Map();
-  private static _endpointRegistry: Map<string, IEndpoint> = new Map();
+  private static _nodeRegistry: Map<string, INode> = new Map();
   private static _eventHandlers: Map<NetEventType, Set<NetEventHandler>> = new Map();
   private static _resolveEmpty: (() => void) | null = null;
   public static config: GatewayConfig = new GatewayConfig();
@@ -45,16 +45,16 @@ export class Gateway {
     }
   }
 
-  private static getOriginFromEndpoint(endpoint: IEndpoint): string {
-    const netType = endpoint.config.method.net?.netType || endpoint.config.actor.net?.netType || Gateway.config.net.netType;
-    const host = endpoint.config.method.net?.host || endpoint.config.actor.net?.host || Gateway.config.net.host;
+  private static getOriginFromNode(node: INode): string {
+    const netType = node.config.method.net?.netType || node.config.actor.net?.netType || Gateway.config.net.netType;
+    const host = node.config.method.net?.host || node.config.actor.net?.host || Gateway.config.net.host;
     return `${netType}://${host}`;
   }
 
-  private static countEndpointsByOrigin(origin: string): number {
+  private static countNodesByOrigin(origin: string): number {
     let count = 0;
-    for (const endpoint of this._endpointRegistry.values()) {
-      if (this.getOriginFromEndpoint(endpoint) === origin) {
+    for (const node of this._nodeRegistry.values()) {
+      if (this.getOriginFromNode(node) === origin) {
         count++;
       }
     }
@@ -89,9 +89,9 @@ export class Gateway {
     Logger.info('Starting gateway');
     this._running = true;
 
-    for (const endpoint of this._endpointRegistry.values()) {
-      console.log("EndpointGateway start", endpoint.config.endpoint);
-      await Gateway.getOrCreateNetInstance(endpoint);
+    for (const node of this._nodeRegistry.values()) {
+      console.log("NodeGateway start", node.config.node);
+      await Gateway.getOrCreateNetInstance(node);
     }
     return new Promise((resolve) => {
       this._resolveEmpty = resolve;
@@ -116,20 +116,20 @@ export class Gateway {
     Logger.info('Gateway stopped');
   }
 
-  static registerEndpoint(endpoint: IEndpoint): void {
-    //根据情况开始确定Endpoint
+  static registerNode(node: INode): void {
+    //根据情况开始确定Node
 
-    const endpointPath = endpoint.config.endpoint;
-    const origin = this.getOriginFromEndpoint(endpoint);
-    Logger.info('Registering endpoint', { endpoint: endpointPath });
+    const nodePath = node.config.node;
+    const origin = this.getOriginFromNode(node);
+    Logger.info('Registering node', { node: nodePath });
 
-    this._endpointRegistry.set(endpointPath, endpoint);
+    this._nodeRegistry.set(nodePath, node);
 
     if (this._running) {
-      Logger.info('Gateway running, creating net instance for new endpoint', { origin });
-      this.getOrCreateNetInstance(endpoint)
+      Logger.info('Gateway running, creating net instance for new node', { origin });
+      this.getOrCreateNetInstance(node)
         .then((net) => {
-          net.addCors(endpoint.config.net.cors);
+          net.addCors(node.config.net.cors);
           this.emit('register', net, origin);
         })
         .catch((err) => {
@@ -137,106 +137,106 @@ export class Gateway {
         });
     }
 
-    Logger.debug('Endpoint registered', { endpoint: endpointPath, totalEndpoints: this._endpointRegistry.size });
+    Logger.debug('Node registered', { node: nodePath, totalNodes: this._nodeRegistry.size });
   }
 
-  static unregisterEndpoint(endpointPath: string): void {
-    Logger.info('Unregistering endpoint', { endpoint: endpointPath });
+  static unregisterNode(nodePath: string): void {
+    Logger.info('Unregistering node', { node: nodePath });
 
-    const endpoint = this._endpointRegistry.get(endpointPath);
-    if (!endpoint) {
-      Logger.warn('Endpoint not found for unregister', { endpoint: endpointPath });
+    const node = this._nodeRegistry.get(nodePath);
+    if (!node) {
+      Logger.warn('Node not found for unregister', { node: nodePath });
       return;
     }
 
-    const origin = this.getOriginFromEndpoint(endpoint);
-    this._endpointRegistry.delete(endpointPath);
+    const origin = this.getOriginFromNode(node);
+    this._nodeRegistry.delete(nodePath);
 
     if (this._running && this._netPool.has(origin)) {
-      const count = this.countEndpointsByOrigin(origin);
-      Logger.debug('Checking if net instance should be destroyed', { origin, remainingEndpoints: count });
+      const count = this.countNodesByOrigin(origin);
+      Logger.debug('Checking if net instance should be destroyed', { origin, remainingNodes: count });
 
       if (count === 0) {
-        Logger.info('No more endpoints for origin, destroying net instance', { origin });
+        Logger.info('No more nodes for origin, destroying net instance', { origin });
         this.destroyNetInstance(origin).catch((err) => {
           Logger.error('Failed to destroy net instance', { origin, error: err instanceof Error ? err.message : String(err) });
         });
       }
     }
 
-    Logger.debug('Endpoint unregistered', { endpoint: endpointPath, totalEndpoints: this._endpointRegistry.size });
+    Logger.debug('Node unregistered', { node: nodePath, totalNodes: this._nodeRegistry.size });
   }
 
-  static matchEndpoint(endpoint: string): IEndpoint | undefined {
-    return this._endpointRegistry.get(endpoint);
+  static matchNode(node: string): INode | undefined {
+    return this._nodeRegistry.get(node);
   }
 
-  static async getOrCreateNetInstance(endpoint: IEndpoint): Promise<INet> {
-    const origin = Gateway.getOriginFromEndpoint(endpoint);
+  static async getOrCreateNetInstance(node: INode): Promise<INet> {
+    const origin = Gateway.getOriginFromNode(node);
     if (Gateway._netPool.has(origin)) {
       return Gateway._netPool.get(origin)!;
     }
     Logger.info('Creating net instance', { origin });
-    const net = await newNetInstance(origin, endpoint.config.net.framework);
+    const net = await newNetInstance(origin, node.config.net.framework);
     await net.start?.(origin);
     this._netPool.set(origin, net);
     await this.emit('register', net, origin);
     return net;
   }
 
-  static async request(request: RequestProtocol, endpoint: IEndpoint): Promise<ResponseProtocol> {
+  static async request(request: RequestProtocol, node: INode): Promise<ResponseProtocol> {
     Logger.info('Sending request', {
-      endpoint: request.endpoint,
+      node: request.node,
       method: request.method,
       hasActor: !!request.actor,
       paramCount: request.parameters?.length ?? 0
     });
 
-    const net = await this.getOrCreateNetInstance(endpoint);
-    const response = await net.request(request, endpoint.config.net.framework.request.options);
+    const net = await this.getOrCreateNetInstance(node);
+    const response = await net.request(request, node.config.net.framework.request.options);
 
     if (response.exception) {
       Logger.error('Request failed', {
-        endpoint: request.endpoint,
+        node: request.node,
         code: response.exception.code,
         message: response.exception.message
       });
     } else {
-      Logger.info('Request succeeded', { endpoint: request.endpoint });
+      Logger.info('Request succeeded', { node: request.node });
     }
     return response;
   }
 
   static async service(request: RequestProtocol): Promise<ResponseProtocol> {
-    const endpoint = request.endpoint;
+    const node = request.node;
     Logger.info('Processing service request', {
-      endpoint,
+      node,
       method: request.method,
       hasActor: !!request.actor,
       paramCount: request.parameters?.length ?? 0,
       request
     });
 
-    const nodeEndpoint = Gateway.matchEndpoint(endpoint);
+    const nodeNode = Gateway.matchNode(node);
 
-    if (!nodeEndpoint) {
-      Logger.error('Endpoint not found', { endpoint });
+    if (!nodeNode) {
+      Logger.error('Node not found', { node });
       return ProtocolBuilder.buildException(request, {
         code: 404,
-        message: `Endpoint not found: ${endpoint}`,
+        message: `Node not found: ${node}`,
       });
     }
 
-    const response = await nodeEndpoint.service(request);
+    const response = await nodeNode.service(request);
 
     if (response.exception) {
       Logger.error('Service request failed', {
-        endpoint,
+        node,
         code: response.exception.code,
         message: response.exception.message
       });
     } else {
-      Logger.info('Service request completed', { endpoint });
+      Logger.info('Service request completed', { node });
     }
 
     return response;
@@ -246,14 +246,14 @@ export class Gateway {
     return this._netPool.size;
   }
 
-  static get endpointCount(): number {
-    return this._endpointRegistry.size;
+  static get nodeCount(): number {
+    return this._nodeRegistry.size;
   }
 
-  static getEndpointRegistry(): IterableIterator<[string, IEndpoint]> {
-    return this._endpointRegistry.entries();
+  static getNodeRegistry(): IterableIterator<[string, INode]> {
+    return this._nodeRegistry.entries();
   }
-  static findEndpoint(endpoint: string): IEndpoint | undefined {
-    return this._endpointRegistry.get(endpoint);
+  static findNode(node: string): INode | undefined {
+    return this._nodeRegistry.get(node);
   }
 }

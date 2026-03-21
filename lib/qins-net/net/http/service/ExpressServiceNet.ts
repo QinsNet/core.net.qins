@@ -3,7 +3,7 @@ import cors, { CorsOptions } from 'cors';
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IServiceNet } from '../../INet';
 import { Logger } from '../../../util/Logger';
-import { Gateway } from '../../../endpoint/Gateway';
+import { Gateway } from '../../../node/Node';
 import { CorsProperties } from '../../../config/Net';
 
 type HttpServer = {
@@ -125,7 +125,7 @@ export class ExpressServiceNet implements IServiceNet {
         const request: RequestProtocol = req.body;
         Logger.info('ExpressServiceNet: HTTP request processing', {
           requestId,
-          endpoint: request.endpoint,
+          node: request.node,
           method: request.method
         });
 
@@ -134,7 +134,7 @@ export class ExpressServiceNet implements IServiceNet {
 
         Logger.info('ExpressServiceNet: HTTP response sent', {
           requestId,
-          endpoint: request.endpoint,
+          node: request.node,
           hasException: !!response.exception
         });
       } catch (error) {

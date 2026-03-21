@@ -21,7 +21,7 @@ export interface CorsProperties {
   maxAge?: number;
 }
 export interface NetProperties {
-    endpoint: string;
+    node: string;
     host: string;
     timeout: number;
     framework: {

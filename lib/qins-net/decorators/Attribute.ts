@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
 import { AttributeProperties } from '../config/Attribute';
-import { getEndpointProperties } from './Actor';
+import { getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 
 function Attribute(properties: Partial<AttributeProperties> = {}) {
@@ -13,8 +13,8 @@ function Attribute(properties: Partial<AttributeProperties> = {}) {
     //type
     const type = Reflect.getMetadata('design:type', target, propertyKey) as ClassConstructor<unknown>;
     defaultProperties.type = defaultProperties.type ?? registerClassTransformerTypeProtocol(type as ClassConstructor<unknown>);
-    const endpointConfig = getEndpointProperties(target, propertyKey);
-    endpointConfig.actor.attributes[defaultProperties.name] = deepmerge(defaultProperties,properties || {});
+    const nodeConfig = getNodeProperties(target, propertyKey);
+    nodeConfig.actor.attributes[defaultProperties.name] = deepmerge(defaultProperties,properties || {});
   };
 }
 export function AttributeNode(properties: Partial<AttributeProperties> = {}) {

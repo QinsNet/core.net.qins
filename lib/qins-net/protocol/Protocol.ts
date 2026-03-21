@@ -15,7 +15,7 @@ export interface ExceptionProtocol {
 }
 export interface RequestProtocol {
   version?: string;
-  endpoint: string;
+  node: string;
   actor: {
     type: string,
     properties?: unknown
@@ -26,7 +26,7 @@ export interface RequestProtocol {
 
 export interface ResponseProtocol {
   version?: string;
-  endpoint: string;
+  node: string;
   result: {
     type: string,
     properties?: unknown

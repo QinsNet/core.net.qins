@@ -3,15 +3,15 @@ import { INet, IRequestNet, IServiceNet } from "../net/INet";
 import { HTTPNet } from "../net/http";
 import { EmptyServiceNet } from "../net/http/service/EmptyServiceNet";
 
-export function getNetTypeFromEndpoint(endpoint: string): "http" | "ws" {
-  if (endpoint.startsWith("ws://") || endpoint.startsWith("wss://")) {
+export function getNetTypeFromNode(node: string): "http" | "ws" {
+  if (node.startsWith("ws://") || node.startsWith("wss://")) {
     return "ws";
   }
   return "http";
 }
 
-export function getOriginFromEndpoint(endpoint: string): string {
-  const url = new URL(endpoint);
+export function getOriginFromNode(node: string): string {
+  const url = new URL(node);
   return url.host;
 }
 

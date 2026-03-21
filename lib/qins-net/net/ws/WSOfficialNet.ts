@@ -1,5 +1,5 @@
 import { serialize } from 'class-transformer';
-import { Gateway } from '../../endpoint/Gateway';
+import { Gateway } from '../../node/Node';
 import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import type { INet } from '../INet';
 import { Logger } from '../../util/Logger';
@@ -106,18 +106,18 @@ export class WSOfficialNet implements INet {
     const { WebSocket } = await import('ws');
 
     Logger.info('WSOfficialNet: WebSocket request starting', {
-      endpoint: data.endpoint,
+      node: data.node,
       method: data.method,
       timeout
     });
 
     return new Promise((resolve) => {
-      const fullUrl = data.endpoint.replace(/^http/, 'ws');
+      const fullUrl = data.node.replace(/^http/, 'ws');
       Logger.debug('WSOfficialNet: WebSocket connecting', { url: fullUrl });
       const ws = new WebSocket(fullUrl);
 
       const timeoutId = setTimeout(() => {
-        Logger.warn('WSOfficialNet: WebSocket request timeout', { endpoint: data.endpoint, timeout });
+        Logger.warn('WSOfficialNet: WebSocket request timeout', { node: data.node, timeout });
         ws.close();
         resolve(ProtocolBuilder.buildException(data, {
           code: 408,
@@ -126,7 +126,7 @@ export class WSOfficialNet implements INet {
       }, timeout);
 
       ws.on('open', () => {
-        Logger.debug('WSOfficialNet: WebSocket connected, sending request', { endpoint: data.endpoint });
+        Logger.debug('WSOfficialNet: WebSocket connected, sending request', { node: data.node });
         ws.send(JSON.stringify(data));
       });
 
@@ -137,16 +137,16 @@ export class WSOfficialNet implements INet {
           const response = JSON.parse(rawData.toString()) as ResponseProtocol;
           if (response.exception) {
             Logger.error('WSOfficialNet: WebSocket request failed', {
-              endpoint: data.endpoint,
+              node: data.node,
               code: response.exception.code,
               message: response.exception.message
             });
           } else {
-            Logger.info('WSOfficialNet: WebSocket request succeeded', { endpoint: data.endpoint });
+            Logger.info('WSOfficialNet: WebSocket request succeeded', { node: data.node });
           }
           resolve(response);
         } catch {
-          Logger.error('WSOfficialNet: WebSocket response parse error', { endpoint: data.endpoint });
+          Logger.error('WSOfficialNet: WebSocket response parse error', { node: data.node });
           resolve(ProtocolBuilder.buildException(data, {
             code: 500,
             message: 'Invalid Response',
@@ -157,7 +157,7 @@ export class WSOfficialNet implements INet {
       ws.on('error', (error: Error) => {
         clearTimeout(timeoutId);
         Logger.error('WSOfficialNet: WebSocket connection error', {
-          endpoint: data.endpoint,
+          node: data.node,
           error: error.message
         });
         resolve(ProtocolBuilder.buildException(data, {
@@ -177,8 +177,8 @@ export class WSOfficialNet implements INet {
   }
 
   async start(host: string): Promise<void> {
-    const { EndpointGlobal } = await import('../../endpoint/EndpointGlobal');
-    if (EndpointGlobal.config.listen === false) {
+    const { NodeGlobal } = await import('../../node/NodeGlobal');
+    if (NodeGlobal.config.listen === false) {
       Logger.debug('WSOfficialNet: WebSocket listen disabled by config');
       return;
     }
@@ -199,7 +199,7 @@ export class WSOfficialNet implements INet {
         const request: RequestProtocol = JSON.parse(rawData.toString());
         Logger.info('WSOfficialNet: WebSocket request received', {
           requestId,
-          endpoint: request.endpoint,
+          node: request.node,
           method: request.method
         });
 
@@ -208,7 +208,7 @@ export class WSOfficialNet implements INet {
 
         Logger.info('WSOfficialNet: WebSocket response sent', {
           requestId,
-          endpoint: request.endpoint,
+          node: request.node,
           hasException: !!response.exception
         });
       } catch (error) {

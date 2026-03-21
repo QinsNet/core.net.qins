@@ -1,5 +1,5 @@
 import { NetProperties} from "./Net";
-import { IEndpoint } from "../endpoint/IEndpoint";
+import { INode } from "../node/INode";
 import { TypeProtocol } from "../protocol/Protocol";
 import { ParameterProperties } from "./Parameter";
 import { ProtocolProperties } from "./Protocol";
@@ -28,6 +28,6 @@ export interface MethodProperties {
   result: TypeProtocol<unknown>;
 
   net?: NetProperties;
-  endpointInstance?: IEndpoint;
+  nodeInstance?: INode;
   protocol?: ProtocolProperties;
 }

@@ -1,12 +1,12 @@
 import 'reflect-metadata';
-import { EndpointGlobal, OperateType } from '../net';
+import { NodeGlobal, OperateType } from '../net';
 import { Actor } from '../decorators/Actor';
-import { Action } from '../decorators/Method';
+import { Action } from '../decorators/Action';
 import { Pack } from './pack';
 
-EndpointGlobal.config.listen = false;
+NodeGlobal.config.listen = false;
 
-@Actor({ endpoint: 'http://localhost:8080/user' })
+@Actor({ node: 'http://localhost:8080/user' })
 class User {
   id: string = '';
   name: string = '';

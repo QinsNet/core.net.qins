@@ -1,20 +1,18 @@
 import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import { EndpointGateway } from '../EndpointGateway';
-import type { EndpointConfig, ActorConfig, MethodConfig, NetConfig } from '../../config';
-import { mergeConfigs } from '../../config';
 import { ObjectFilter } from './PathProtocol';
-import { EndpointGlobal } from '../EndpointGlobal';
-import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { Logger } from '../../util/Logger';
 import { ProtocolBuilder } from '../../util/Protocol';
-import { OperateType } from '../../decorators/Method';
 import { IEndpoint } from '../IEndpoint';
+import { OperateType } from '../../config/Method';
+import { EndpointConfig } from '../../config/EndpointConfig';
 
 export class PathEndpoint implements IEndpoint {
-  config: EndpointConfig = {} as EndpointConfig;
-
+  config: EndpointConfig;
+  constructor(config: EndpointConfig){
+    this.config = config;
+  }
   register() {
-    this.config = mergeConfigs(EndpointGlobal.config, this.config.classConfig, this.config.methodConfig);
     EndpointGateway.registerEndpoint(this);
     Logger.debug('Endpoint register', this.config as unknown as Record<string, unknown>);
   }
@@ -47,12 +45,12 @@ export class PathEndpoint implements IEndpoint {
     } else {
       Logger.info('Endpoint request completed', { endpoint: this.config.endpoint });
     }
-    if(!this.config.isStatic && this.config.response.actor){
-      ObjectFilter(response.actor!.properties,instance, this.config.response.actor);
+    if(!this.config.method.isStatic && this.config.method.response.actor){
+      ObjectFilter(response.actor!.properties,instance, this.config.method.response.actor);
     }
-    if(this.config.response.parameters){
+    if(this.config.method.response.parameters){
       const targets = this.packageParams(args, false)
-      for(const [name,value] of Object.entries(this.config.response.parameters)){
+      for(const [name,value] of Object.entries(this.config.method.response.parameters)){
           const target = targets[name].properties;
           if(!target){
             continue;
@@ -118,14 +116,14 @@ export class PathEndpoint implements IEndpoint {
       endpoint: this.config.endpoint,
       actor: {
         type: this.config.actor.name,
-        ...(!this.config.isStatic && {
-          properties: JSON.parse(this.config.actor.serialize(instance))
+        ...(!this.config.method.isStatic && {
+          properties: JSON.parse(this.config.actor.type.serialize(instance))
         })
       },
       method: this.config.name,
       parameters: params,
     };
-    return ProtocolBuilder.buildPathRequest(request, this.config.request);
+    return ProtocolBuilder.buildPathRequest(request, this.config.method.request);
   }
 
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
@@ -134,34 +132,31 @@ export class PathEndpoint implements IEndpoint {
       endpoint: this.config.endpoint,
       actor: {
         type: this.config.actor.name,
-        ...(!this.config.isStatic && {
-          properties: JSON.parse(this.config.actor.serialize(instance))
+        ...(!this.config.method.isStatic && {
+          properties: JSON.parse(this.config.actor.type.serialize(instance))
         })
       },
       parameters: params,
       result: {
-          type: this.config.result.name,
+          type: this.config.method.result.type.name,
           ...(result !== undefined && {
-            properties: JSON.parse(this.config.result.serialize(result))
+            properties: JSON.parse(this.config.method.result.serialize(result))
           })
         },
     };
-    return ProtocolBuilder.buildPathResponse(response, this.config.response);
+    return ProtocolBuilder.buildPathResponse(response, this.config.method.response);
   }
 
   private extractParams(request: RequestProtocol): unknown[] {
     const params: unknown[] = [];
-    this.config.params?.forEach((param,index) => {
-      const requestParam = request.parameters[index]
+    Object.values(this.config.method.parameters).forEach((param) => {
+      const requestParam = request.parameters[param.name]!
       if(!requestParam.properties){
         params.push(undefined);
         return;
       }
       else {
-        params.push(plainToInstance(
-          param.type.type as ClassConstructor<unknown>,
-          requestParam.properties,
-        ))
+        params.push(param.type.deserialize(requestParam.properties))
       }
     });
     return params;
@@ -170,8 +165,7 @@ export class PathEndpoint implements IEndpoint {
   private packageParams(args: unknown[], record: boolean = true): {[key: string]: ParameterProtocol} {
     const params: {[key: string]: ParameterProtocol} = {};
     args.forEach((arg, index) => {
-      if(!arg)return
-      const param = this.config.params[index]!
+      const param = Object.values(this.config.method.parameters).find((item) => item.index === index)!
       params[param.name] = {
         name: param.name,
         type: param.type.name,
@@ -183,5 +177,3 @@ export class PathEndpoint implements IEndpoint {
     return params;
   }
 }
-
-export type { NetConfig, ActorConfig as NodeClassConfig, MethodConfig as NodeMethodConfig, EndpointConfig as NodeEndpointConfig };

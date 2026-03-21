@@ -5,6 +5,7 @@ import type { IEndpoint } from './IEndpoint';
 import { Logger } from '../util/Logger';
 import { ProtocolBuilder } from '../util/Protocol';
 import { newNetInstance } from '../util/Netutil';
+import { GlobalConfig } from '../config/Global';
 
 export type NetEventType = 'register' | 'unregister' | 'empty';
 export type NetEventHandler = (net: INet, origin: string) => void | Promise<void>;
@@ -15,7 +16,7 @@ export class EndpointGateway {
   private static _endpointRegistry: Map<string, IEndpoint> = new Map();
   private static _eventHandlers: Map<NetEventType, Set<NetEventHandler>> = new Map();
   private static _resolveEmpty: (() => void) | null = null;
-  public static types: Map<Function, TypeProtocol<unknown>> = new Map();
+  public static types: Map<string, TypeProtocol<unknown>> = new Map();
 
   static get running(): boolean {
     return this._running;
@@ -44,7 +45,9 @@ export class EndpointGateway {
   }
 
   private static getOriginFromEndpoint(endpoint: IEndpoint): string {
-    return `${endpoint.config.protocol}://${endpoint.config.host}`;
+    const netType = endpoint.config.method.netType || endpoint.config.actor.netType || GlobalConfig.netType;
+    const host = endpoint.config.method.host || endpoint.config.actor.host || GlobalConfig.host;
+    return `${netType}://${host}`;
   }
 
   private static countEndpointsByOrigin(origin: string): number {
@@ -123,7 +126,7 @@ export class EndpointGateway {
       Logger.info('Gateway running, creating net instance for new endpoint', { origin });
       this.getOrCreateNetInstance(endpoint)
         .then((net) => {
-          net.addCors(endpoint.config.cors);
+          net.addCors(endpoint.config.method.cors || endpoint.config.actor.cors || GlobalConfig.cors);
           this.emit('register', net, origin);
         })
         .catch((err) => {
@@ -171,8 +174,8 @@ export class EndpointGateway {
       return EndpointGateway._netPool.get(origin)!;
     }
     Logger.info('Creating net instance', { origin });
-    const net = await newNetInstance(origin, endpoint.config.listen, endpoint.config.framework);
-    await net.start?.(origin, endpoint.config.cors);
+    const net = await newNetInstance(origin, endpoint.config.method.framework || endpoint.config.actor.framework || GlobalConfig.framework);
+    await net.start?.(origin, endpoint.config.method.cors || endpoint.config.actor.cors || GlobalConfig.cors);
     this._netPool.set(origin, net);
     await this.emit('register', net, origin);
     return net;
@@ -187,7 +190,7 @@ export class EndpointGateway {
     });
 
     const net = await this.getOrCreateNetInstance(endpoint);
-    const response = await net.request(request, endpoint.config.properties, endpoint.config.timeout);
+    const response = await net.request(request, endpoint.config.options, endpoint.config.timeout);
 
     if (response.exception) {
       Logger.error('Request failed', {
@@ -246,5 +249,8 @@ export class EndpointGateway {
 
   static getEndpointRegistry(): IterableIterator<[string, IEndpoint]> {
     return this._endpointRegistry.entries();
+  }
+  static findEndpoint(endpoint: string): IEndpoint | undefined {
+    return this._endpointRegistry.get(endpoint);
   }
 }

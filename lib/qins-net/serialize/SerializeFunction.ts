@@ -19,10 +19,21 @@ export class ClassTransformerTypeProtocol<T> implements TypeProtocol<T> {
     }
 }
 
-export function registerClassTransformerTypeProtocol<T>(type: ClassConstructor<T>, options?: ClassTransformOptions): ClassTransformerTypeProtocol<T> {
-    if (EndpointGateway.types.has(type)) {
-        return EndpointGateway.types.get(type) as ClassTransformerTypeProtocol<T>;
+export function registerClassTransformerTypeProtocol<T>(type: ClassConstructor<T>, options?: ClassTransformOptions): TypeProtocol<T> {
+    const name = type.prototype.name;
+    if (EndpointGateway.types.has(name)) {
+        return EndpointGateway.types.get(name) as TypeProtocol<T>;
     }
-    EndpointGateway.types.set(type, new ClassTransformerTypeProtocol(type, options));
-    return EndpointGateway.types.get(type) as ClassTransformerTypeProtocol<T>;
+    EndpointGateway.types.set(name, new ClassTransformerTypeProtocol(type, options));
+    return EndpointGateway.types.get(name) as TypeProtocol<T>;
+}
+export function registerTypeProtocol<T>(protocol: TypeProtocol<T>): TypeProtocol<T> {
+    if (EndpointGateway.types.has(protocol.name)) {
+        return EndpointGateway.types.get(protocol.name) as TypeProtocol<T>;
+    }
+    EndpointGateway.types.set(protocol.name, protocol);
+    return EndpointGateway.types.get(protocol.name) as TypeProtocol<T>;
+}
+export function registerVoidTypeProtocol(): TypeProtocol<void> {
+    return {name: 'Void', type: () => void 0, serialize: () => '', deserialize: () => void 0};
 }

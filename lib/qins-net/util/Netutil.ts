@@ -15,15 +15,12 @@ export function getOriginFromEndpoint(endpoint: string): string {
   return url.host;
 }
 
-export async function newNetInstance(origin: string, isListen: boolean, framework: { ws: WSFramework, request: HTTPRequestFramework, service: HTTPServiceFramework }): Promise<INet> {
+export async function newNetInstance(origin: string, framework: { ws: WSFramework, request: HTTPRequestFramework, service: HTTPServiceFramework }): Promise<INet> {
   const url = new URL(origin);
   const type = url.protocol.replace(":", "");
   let net: INet | undefined = undefined;
 
   if (type === "ws") {
-    if (isListen) {
-      throw new Error("WS net must be created with isListen set to true");
-    }
     if (framework.ws === WSFramework.WS) {
       const { WSOfficialNet } = await import("../net/ws/WSOfficialNet");
       net = new WSOfficialNet();
@@ -43,7 +40,7 @@ export async function newNetInstance(origin: string, isListen: boolean, framewor
     } else {
       throw new Error("HTTP request framework not supported");
     }
-    if (!isListen) {
+    if(serviceFramework === HTTPServiceFramework.Empty) {
       serviceNet = new EmptyServiceNet();
     }
     else if (serviceFramework === HTTPServiceFramework.Express) {

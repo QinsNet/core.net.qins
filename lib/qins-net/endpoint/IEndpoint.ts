@@ -1,4 +1,4 @@
-import { EndpointConfig } from "../config";
+import { EndpointConfig } from "../config/EndpointConfig";
 import { RequestProtocol } from "../net";
 import { ResponseProtocol } from "../net";
 

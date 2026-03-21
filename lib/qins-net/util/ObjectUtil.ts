@@ -1,3 +1,5 @@
+import { EndpointConfig } from "../config/EndpointConfig";
+
 export function getValueByPath(obj: unknown, path: string): unknown {
   if (!path) return obj;
   const keys = path.split('.');
@@ -31,3 +33,4 @@ export function setValueByPath(obj: Record<string, unknown>, path: string, value
   
   current[keys[keys.length - 1]] = value;
 }
+ 

@@ -18,8 +18,7 @@ export type { ProtocolProperties } from './config/Protocol';
 export { NodeProperties as NodeConfig } from './config/Node';
 export { GatewayConfig } from './config/Gateway';
 export { PathNode as Node } from './node/path/Node';
-export { Gateway as NodeGateway } from './node/Node';
-export { Actor as NodeClass } from './decorators/Actor';
-export { Action as NodeMethod } from './decorators/Action';
+export { Gateway as NodeGateway } from './node/Gateway';
 export type { INet, IRequestNet, IServiceNet } from './net/INet';
+
 export { Logger } from './util/Logger';

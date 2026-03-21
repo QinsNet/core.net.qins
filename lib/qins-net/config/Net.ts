@@ -39,5 +39,5 @@ export interface NetProperties {
         }
     }
     cors?: CorsProperties;
-    netType: NetType;
+    type: NetType;
 }

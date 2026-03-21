@@ -2,11 +2,10 @@ import { registerVoidTypeProtocol } from "../serialize/SerializeFunction";
 import { ActorProperties } from "./Actor";
 import { MethodProperties } from "./Action";
 import { HTTPRequestFramework, HTTPServiceFramework, NetProperties, NetType, WSFramework } from "./Net";
-import { NodeType } from "./Protocol";
+import { NodeType, ProtocolProperties } from "./Protocol";
 
 export class NodeProperties {
     name: string = '';
-    node: string = '';
     enabled: boolean = true;
     net: NetProperties = {
         endpoint: '',
@@ -25,10 +24,10 @@ export class NodeProperties {
                 options: {},
             },
         },
-        netType: NetType.HTTP,
+        type: NetType.HTTP,
         timeout: 0,
     };
-    protocol = { nodeType: NodeType.Path };
+    protocol: ProtocolProperties = { type: NodeType.Path };
     actor: ActorProperties = {
         name: '',
         type: registerVoidTypeProtocol(),

@@ -46,9 +46,7 @@ export class Gateway {
   }
 
   private static getOriginFromNode(node: INode): string {
-    const netType = node.config.method.net?.netType || node.config.actor.net?.netType || Gateway.config.net.netType;
-    const host = node.config.method.net?.host || node.config.actor.net?.host || Gateway.config.net.host;
-    return `${netType}://${host}`;
+    return `${node.config.net.type}://${node.config.net.host}`;
   }
 
   private static countNodesByOrigin(origin: string): number {
@@ -90,7 +88,7 @@ export class Gateway {
     this._running = true;
 
     for (const node of this._nodeRegistry.values()) {
-      console.log("NodeGateway start", node.config.node);
+      console.log("NodeGateway start", node.config.net.endpoint);
       await Gateway.getOrCreateNetInstance(node);
     }
     return new Promise((resolve) => {
@@ -119,7 +117,7 @@ export class Gateway {
   static registerNode(node: INode): void {
     //根据情况开始确定Node
 
-    const nodePath = node.config.node;
+    const nodePath = node.config.net.endpoint;
     const origin = this.getOriginFromNode(node);
     Logger.info('Registering node', { node: nodePath });
 
@@ -253,7 +251,7 @@ export class Gateway {
   static getNodeRegistry(): IterableIterator<[string, INode]> {
     return this._nodeRegistry.entries();
   }
-  static findNode(node: string): INode | undefined {
-    return this._nodeRegistry.get(node);
+  static findNode(endpoint: string): INode | undefined {
+    return this._nodeRegistry.get(endpoint);
   }
 }

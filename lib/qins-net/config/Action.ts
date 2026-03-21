@@ -29,6 +29,6 @@ export interface MethodProperties {
   result: TypeProtocol<unknown>;
 
   net?: Object.Partial<NetProperties,'deep'>;
-  nodeInstance?: INode;
+
   protocol?: ProtocolProperties;
 }

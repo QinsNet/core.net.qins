@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import { HTTPServiceFramework, OperateType } from '../net';
 import { Pack } from './pack';
-import { Action } from '../decorators/Action';
-import { Actor } from '../decorators/Actor';
-import { Gateway } from '../node/Node';
+import { ActionNode } from '../decorators/Action';
+import { ActorNode } from '../decorators/Actor';
+import { Gateway } from '../node/Gateway';
 
 Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Express } }
-Gateway.config.net.endpoint = 'http://localhost:8080/user';
-@Actor()
+Gateway.config.net.endpoint = 'http://localhost:8080';
+@ActorNode()
 class User {
   id: string = '';
   name: string = '';
@@ -15,7 +15,7 @@ class User {
   password: string = '';
   packages: Pack[] = [];
 
-  @Action({
+  @ActionNode({
     request: {
       actor: {
         id: OperateType.Local,
@@ -28,7 +28,7 @@ class User {
         email: OperateType.Local,
         password: OperateType.Local,
       },
-    },
+    }
   })
   async getUser(): Promise<void> {
     if(this.id == '123' && this.password == '1234'){
@@ -40,7 +40,7 @@ class User {
   }
 
 
-    @Action({
+    @ActionNode({
       request: {
         actor: {},
         parameters: {

@@ -14,8 +14,8 @@ function Attribute(properties: ObjectTB.Partial<AttributeProperties,'deep'> = {}
     //type
     const type = Reflect.getMetadata('design:type', target, propertyKey) as ClassConstructor<unknown>;
     defaultProperties.type = defaultProperties.type ?? registerClassTransformerTypeProtocol(type as ClassConstructor<unknown>);
-    const nodeConfig = getNodeProperties(target, propertyKey);
-    nodeConfig.actor.attributes[defaultProperties.name] = deepmerge(defaultProperties as AttributeProperties,properties);
+    const nodeConfig = getNodeProperties(target.constructor, propertyKey);
+    nodeConfig.actor.attributes[defaultProperties.name] = deepmerge(defaultProperties as AttributeProperties,properties, { clone: false });
   };
 }
 export function AttributeNode(properties: ObjectTB.Partial<AttributeProperties,'deep'> = {}) {

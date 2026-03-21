@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import {  HTTPServiceFramework, OperateType } from '../net';
-import { Actor } from '../decorators/Actor';
-import { Action, ActionNode } from '../decorators/Action';
+import { ActorNode } from '../decorators/Actor';
+import { Action } from '../decorators/Action';
 import { Pack } from './pack';
-import { Gateway } from '../node/Node';
+import { Gateway } from '../node/Gateway';
 
 Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Empty } }
-Gateway.config.net.endpoint = 'http://localhost:8080/user';
-@Actor()
+Gateway.config.net.endpoint = 'http://localhost:8080';
+@ActorNode()
 class User {
   id: string = '';
   name: string = '';
@@ -15,7 +15,7 @@ class User {
   password: string = '';
   packages: Pack[] = [];
 
-  @ActionNode({
+  @Action({
     request: {
       actor: {
         id: OperateType.Local,
@@ -30,12 +30,12 @@ class User {
       },
     },
   })
-  async getUser(): Promise<void> {
+  async getUser(test: string): Promise<void> {
     return Promise.resolve();
   }
 
 
-    @Action({
+  @Action({
       request: {
         actor: {},
         parameters: {
@@ -75,7 +75,7 @@ export async function main() {
   console.log('Sending request with id:', user.id);
 
   try {
-    await user.getUser();
+    await user.getUser('test');
     console.log('Response:');
     console.log('  name:', JSON.stringify(user));
     const pack = new Pack()

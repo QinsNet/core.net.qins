@@ -19,8 +19,8 @@ export function ParameterNode(properties: ObjectTB.Partial<ParameterProperties,'
     defaultProperties.type = registerClassTransformerTypeProtocol(paramType as ClassConstructor<unknown>);
     //索引
     defaultProperties.index = parameterIndex;
-    const nodeConfig = getNodeProperties(target, propertyKey);
+    const nodeConfig = getNodeProperties(target.constructor, propertyKey);
     if(!nodeConfig.method.parameters) nodeConfig.method.parameters = {};
-    nodeConfig.method.parameters[defaultProperties.name] = deepmerge(defaultProperties as ParameterProperties,properties);
+    nodeConfig.method.parameters[defaultProperties.name] = deepmerge(defaultProperties as ParameterProperties,properties, { clone: false });
   };
 }

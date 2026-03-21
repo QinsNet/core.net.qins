@@ -3,7 +3,7 @@ import cors, { CorsOptions } from 'cors';
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IServiceNet } from '../../INet';
 import { Logger } from '../../../util/Logger';
-import { Gateway } from '../../../node/Node';
+import { Gateway } from '../../../node/Gateway';
 import { CorsProperties } from '../../../config/Net';
 
 type HttpServer = {

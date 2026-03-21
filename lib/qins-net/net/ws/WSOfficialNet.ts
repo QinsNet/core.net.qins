@@ -1,5 +1,5 @@
 import { serialize } from 'class-transformer';
-import { Gateway } from '../../node/Node';
+import { Gateway } from '../../node/Gateway';
 import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import type { INet } from '../INet';
 import { Logger } from '../../util/Logger';

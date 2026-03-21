@@ -112,7 +112,7 @@ export class PathNode implements INode {
       method: this.config.name,
       parameters: params,
     };
-    return ProtocolBuilder.buildPathRequest(request, this.config.method.request, this.config.method.parameters);
+    return ProtocolBuilder.buildPathRequest(request, this.config.method.request);
   }
 
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
@@ -133,7 +133,7 @@ export class PathNode implements INode {
           })
         },
     };
-    return ProtocolBuilder.buildPathResponse(response, this.config.method.response, this.config.method.parameters);
+    return ProtocolBuilder.buildPathResponse(response, this.config.method.response);
   }
 
   private extractParams(request: RequestProtocol): unknown[] {
@@ -160,10 +160,10 @@ export class PathNode implements INode {
         name: param.name,
         type: param.type.name,
         index: param.index,
-        ...(!arg && {
-          properties: record ? JSON.parse(param.type.serialize(arg)) : arg,
-        })
       };
+      if(arg !== undefined){
+        params[param.name].properties = record ? JSON.parse(param.type.serialize(arg)) : arg;
+      }
     });
     return params;
   }

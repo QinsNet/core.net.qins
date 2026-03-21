@@ -5,6 +5,7 @@ import { ActionNode } from '../decorators/Action';
 import { ActorNode } from '../decorators/Actor';
 import { Gateway } from '../node/Gateway';
 import { registerClassTransformerTypeProtocol, registerVoidTypeProtocol } from '../serialize/SerializeFunction';
+import { ParameterNode } from '../decorators/Parameter';
 
 Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Express } }
 Gateway.config.net.endpoint = 'http://localhost:8080';
@@ -49,7 +50,7 @@ class User {
         actor: {},
         parameters: {
           pack: {
-            name: OperateType.Local,
+            id: OperateType.Local,
           },
         }
       },
@@ -66,9 +67,10 @@ class User {
         type: registerClassTransformerTypeProtocol(Pack),
       },
     })
-    async addPackage(pack: Pack): Promise<Pack> {
-      if(this.id == 'aaaa'){
+    async addPackage(@ParameterNode({name: 'pack'}) pack: Pack): Promise<Pack> {
+      if(pack.id == 'aaaa'){
         this.packages.push(pack);
+        pack.id = 'bbbb';
         pack.version = '1.0.0';
         pack.name = 'test';
         pack.description = 'test package';

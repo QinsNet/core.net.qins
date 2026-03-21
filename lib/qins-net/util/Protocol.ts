@@ -10,13 +10,13 @@ export class ProtocolBuilder{
         type: 'Exception'
       },
       ...request,
-      ...exception,
+      exception: exception,
     };
   }
-  static buildPathRequest(request: RequestProtocol,path: RequestPact,config: {[key: string]: ParameterProperties}): PathRequestProtocol {
-    return new PathRequestProtocol(request.node,request.method,request.actor,request.parameters,path,config);
+  static buildPathRequest(request: RequestProtocol,path: RequestPact): PathRequestProtocol {
+    return new PathRequestProtocol(request.node,request.method,request.actor,request.parameters,path);
   }
-  static buildPathResponse(response: ResponseProtocol,path: ResponsePact,config: {[key: string]: ParameterProperties}): PathResponseProtocol {
-    return new PathResponseProtocol(response.node,response.actor,response.parameters,response.result,path,config);  
+  static buildPathResponse(response: ResponseProtocol,path: ResponsePact): PathResponseProtocol {
+    return new PathResponseProtocol(response.node,response.actor,response.parameters,response.result,path);  
   }
 }

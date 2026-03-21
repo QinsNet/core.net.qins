@@ -21,6 +21,7 @@ export function ParameterNode(properties: ObjectTB.Partial<ParameterProperties,'
     defaultProperties.index = parameterIndex;
     const nodeConfig = getNodeProperties(target.constructor, propertyKey);
     if(!nodeConfig.method.parameters) nodeConfig.method.parameters = {};
-    nodeConfig.method.parameters[defaultProperties.name] = deepmerge(defaultProperties as ParameterProperties,properties, { clone: false });
+    const param = deepmerge(defaultProperties as ParameterProperties,properties, { clone: false });
+    nodeConfig.method.parameters[param.name] = param;
   };
 }

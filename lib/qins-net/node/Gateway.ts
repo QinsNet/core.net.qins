@@ -17,7 +17,7 @@ export class Gateway {
   private static _eventHandlers: Map<NetEventType, Set<NetEventHandler>> = new Map();
   private static _resolveEmpty: (() => void) | null = null;
   public static config: GatewayConfig = new GatewayConfig();
-  public static types: Map<string, TypeProtocol<unknown>> = new Map();
+  public static types: Map<string, TypeProtocol<any>> = new Map();
 
   static get running(): boolean {
     return this._running;

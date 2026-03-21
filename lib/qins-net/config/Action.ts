@@ -27,7 +27,7 @@ export interface MethodProperties {
   isStatic: boolean;
   parameters: { [key: string]: ParameterProperties };
   result: {
-    type: TypeProtocol<unknown>;
+    type: TypeProtocol<any>;
   }
 
   net?: Object.Partial<NetProperties,'deep'>;

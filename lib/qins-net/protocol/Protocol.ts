@@ -1,8 +1,8 @@
 export interface TypeProtocol<T> {
     name: string;
     type: Function;
-    serialize(instance: T): string;
-    deserialize(serialized: string|Object): T;
+    serialize: (instance: T) => string;
+    deserialize: (serialized: string|Object,instance?: T) => T;  
 }
 export interface ParameterProtocol {
   name: string;

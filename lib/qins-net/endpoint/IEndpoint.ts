@@ -1,9 +1,9 @@
-import { EndpointConfig } from "../config/EndpointConfig";
+import { EndpointProperties } from "../config/Endpoint";
 import { RequestProtocol } from "../net";
 import { ResponseProtocol } from "../net";
 
 export interface IEndpoint {
-  config: EndpointConfig;
+  config: EndpointProperties;
   register(): void;
   unregister(): void;
   request(instance: object, ...args: unknown[]): Promise<unknown>;

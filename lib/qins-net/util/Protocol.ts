@@ -1,5 +1,5 @@
-import { RequestPact, ResponsePact } from "../decorators/Method";
-import { PathRequestProtocol, PathResponseProtocol } from "../endpoint/path/PathProtocol";
+import { RequestPact, ResponsePact } from "../config/Method";
+import { PathRequestProtocol, PathResponseProtocol } from "../endpoint/path/Protocol";
 import { ResponseProtocol,RequestProtocol, ExceptionProtocol } from "../protocol/Protocol";
 
 export class ProtocolBuilder{

@@ -1,23 +1,40 @@
 import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
-import { EndpointGateway } from '../EndpointGateway';
-import { ObjectFilter } from './PathProtocol';
+import { Gateway } from '../Gateway';
+import { ObjectFilter } from './Protocol';
 import { Logger } from '../../util/Logger';
 import { ProtocolBuilder } from '../../util/Protocol';
 import { IEndpoint } from '../IEndpoint';
 import { OperateType } from '../../config/Method';
-import { EndpointConfig } from '../../config/EndpointConfig';
+import { EndpointProperties } from '../../config/Endpoint';
+import deepmerge from 'deepmerge';
 
 export class PathEndpoint implements IEndpoint {
-  config: EndpointConfig;
-  constructor(config: EndpointConfig){
+  config: EndpointProperties;
+  constructor(config: EndpointProperties){
     this.config = config;
   }
   register() {
-    EndpointGateway.registerEndpoint(this);
+    //确定基本配置
+    //合并类级配置
+    this.config.net = deepmerge(this.config.net, this.config.actor.net || {});
+    this.config.protocol = deepmerge(this.config.protocol, this.config.actor.protocol || {});
+    //合并方法级配置
+    this.config.net = deepmerge(this.config.net, this.config.method.net || {});
+    this.config.protocol = deepmerge(this.config.protocol, this.config.method.protocol || {});
+    //确定endpoint
+    const endpoint = this.config.method.net?.endpoint && this.config.method.net?.endpoint 
+    || this.config.actor.net?.endpoint && this.config.actor.net?.endpoint + '/' + this.config.method.name 
+    || Gateway.config.net.endpoint && Gateway.config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
+    || this.config.net.netType && this.config.net.host && `${this.config.net.netType}://${this.config.net.host}/${this.config.actor.name}/${this.config.method.name}`;
+    if(!endpoint){
+      throw new Error('Endpoint path is not valid');
+    }
+    this.config.endpoint = endpoint;
+    Gateway.registerEndpoint(this);
     Logger.debug('Endpoint register', this.config as unknown as Record<string, unknown>);
   }
   unregister(): void {
-    EndpointGateway.unregisterEndpoint(this.config.endpoint);
+    Gateway.unregisterEndpoint(this.config.endpoint);
     Logger.debug('Endpoint unregister', this.config as unknown as Record<string, unknown>);
   }
   async request(instance: object, ...args: unknown[]): Promise<unknown> {
@@ -34,7 +51,7 @@ export class PathEndpoint implements IEndpoint {
       paramCount: request.parameters?.length ?? 0 ,
       request
     });
-    let response = await EndpointGateway.request(request, this);
+    let response = await Gateway.request(request, this);
     if (response.exception) {
       Logger.error('Endpoint request failed', { 
         endpoint: this.config.endpoint, 
@@ -69,7 +86,7 @@ export class PathEndpoint implements IEndpoint {
     });
     
     try {
-      if (!this.config.methodConfig.handler) {
+      if (!this.config.method.handler) {
         Logger.error('Endpoint service handler not found', { endpoint: this.config.endpoint });
         return ProtocolBuilder.buildException(request,{
           code: 404,
@@ -77,9 +94,9 @@ export class PathEndpoint implements IEndpoint {
         });
       }
       
-      let instance = this.config.classConfig.constructor as object;
-      if (!this.config.isStatic) {
-        instance = this.config.actor.deserialize(request.actor.properties!) as object;
+      let instance = this.config.actor.constructor as object;
+      if (!this.config.method.isStatic) {
+        instance = this.config.actor.type.deserialize(request.actor.properties!) as object;
         Logger.debug('Instance created from request', { endpoint: this.config.endpoint });
       }
       
@@ -89,7 +106,7 @@ export class PathEndpoint implements IEndpoint {
         argCount: args.length 
       });
       
-      const result = await this.config.methodConfig.handler(instance, ...args);
+      const result = await this.config.method.handler(instance, ...args);
       let response = this.buildResponse(instance, args, result);
       
       Logger.info('Endpoint service completed', { 
@@ -149,7 +166,8 @@ export class PathEndpoint implements IEndpoint {
 
   private extractParams(request: RequestProtocol): unknown[] {
     const params: unknown[] = [];
-    Object.values(this.config.method.parameters).forEach((param) => {
+    const sortParams = Object.values(this.config.method.parameters).sort((a, b) => a.index - b.index);
+    sortParams.forEach((param) => {
       const requestParam = request.parameters[param.name]!
       if(!requestParam.properties){
         params.push(undefined);

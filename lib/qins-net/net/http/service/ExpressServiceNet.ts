@@ -2,16 +2,16 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors, { CorsOptions } from 'cors';
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IServiceNet } from '../../INet';
-import type { CorsConfig } from '../../../config';
 import { Logger } from '../../../util/Logger';
-import { EndpointGateway } from '../../../endpoint/EndpointGateway';
+import { Gateway } from '../../../endpoint/Gateway';
+import { CorsProperties } from '../../../config/Net';
 
 type HttpServer = {
   app: Express;
   close: () => Promise<void>;
 };
 
-function buildCorsOptions(corsConfig: CorsConfig | undefined): CorsOptions | undefined {
+function buildCorsOptions(corsConfig: CorsProperties | undefined): CorsOptions | undefined {
   if (!corsConfig) return undefined;
   return {
     origin: corsConfig.origin,
@@ -23,7 +23,7 @@ function buildCorsOptions(corsConfig: CorsConfig | undefined): CorsOptions | und
   };
 }
 
-function createExpressApp(corsConfig: CorsConfig | undefined): Express {
+function createExpressApp(corsConfig: CorsProperties | undefined): Express {
   const app = express();
   const corsOptions = buildCorsOptions(corsConfig);
 
@@ -82,9 +82,9 @@ async function createHttpServer(
 
 export class ExpressServiceNet implements IServiceNet {
   private _server: HttpServer | null = null;
-  private _cors?: CorsConfig;
+  private _cors?: CorsProperties;
 
-  addCors(cors?: CorsConfig): void {
+  addCors(cors?: CorsProperties): void {
     if (!cors) return;
     else if (!this._cors) this._cors = cors;
     else{
@@ -99,10 +99,10 @@ export class ExpressServiceNet implements IServiceNet {
   }
 
   async service(data: RequestProtocol): Promise<ResponseProtocol> {
-    return EndpointGateway.service(data);
+    return Gateway.service(data);
   }
 
-  async start(host: string, cors?: CorsConfig): Promise<void> {
+  async start(host: string, cors?: CorsProperties): Promise<void> {
     if (cors) {
       this._cors = cors;
     }
@@ -129,7 +129,7 @@ export class ExpressServiceNet implements IServiceNet {
           method: request.method
         });
 
-        const response = await EndpointGateway.service(request);
+        const response = await Gateway.service(request);
         res.status(200).json(response);
 
         Logger.info('ExpressServiceNet: HTTP response sent', {

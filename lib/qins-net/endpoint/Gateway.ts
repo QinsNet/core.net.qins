@@ -5,17 +5,18 @@ import type { IEndpoint } from './IEndpoint';
 import { Logger } from '../util/Logger';
 import { ProtocolBuilder } from '../util/Protocol';
 import { newNetInstance } from '../util/Netutil';
-import { GlobalConfig } from '../config/Global';
+import { GatewayConfig } from '../config/Gateway';
 
 export type NetEventType = 'register' | 'unregister' | 'empty';
 export type NetEventHandler = (net: INet, origin: string) => void | Promise<void>;
 
-export class EndpointGateway {
+export class Gateway {
   private static _running: boolean = false;
   private static _netPool: Map<string, INet> = new Map();
   private static _endpointRegistry: Map<string, IEndpoint> = new Map();
   private static _eventHandlers: Map<NetEventType, Set<NetEventHandler>> = new Map();
   private static _resolveEmpty: (() => void) | null = null;
+  public static config: GatewayConfig = new GatewayConfig();
   public static types: Map<string, TypeProtocol<unknown>> = new Map();
 
   static get running(): boolean {
@@ -45,8 +46,8 @@ export class EndpointGateway {
   }
 
   private static getOriginFromEndpoint(endpoint: IEndpoint): string {
-    const netType = endpoint.config.method.netType || endpoint.config.actor.netType || GlobalConfig.netType;
-    const host = endpoint.config.method.host || endpoint.config.actor.host || GlobalConfig.host;
+    const netType = endpoint.config.method.net?.netType || endpoint.config.actor.net?.netType || Gateway.config.net.netType;
+    const host = endpoint.config.method.net?.host || endpoint.config.actor.net?.host || Gateway.config.net.host;
     return `${netType}://${host}`;
   }
 
@@ -90,7 +91,7 @@ export class EndpointGateway {
 
     for (const endpoint of this._endpointRegistry.values()) {
       console.log("EndpointGateway start", endpoint.config.endpoint);
-      await EndpointGateway.getOrCreateNetInstance(endpoint);
+      await Gateway.getOrCreateNetInstance(endpoint);
     }
     return new Promise((resolve) => {
       this._resolveEmpty = resolve;
@@ -116,6 +117,8 @@ export class EndpointGateway {
   }
 
   static registerEndpoint(endpoint: IEndpoint): void {
+    //根据情况开始确定Endpoint
+
     const endpointPath = endpoint.config.endpoint;
     const origin = this.getOriginFromEndpoint(endpoint);
     Logger.info('Registering endpoint', { endpoint: endpointPath });
@@ -126,7 +129,7 @@ export class EndpointGateway {
       Logger.info('Gateway running, creating net instance for new endpoint', { origin });
       this.getOrCreateNetInstance(endpoint)
         .then((net) => {
-          net.addCors(endpoint.config.method.cors || endpoint.config.actor.cors || GlobalConfig.cors);
+          net.addCors(endpoint.config.net.cors);
           this.emit('register', net, origin);
         })
         .catch((err) => {
@@ -169,13 +172,13 @@ export class EndpointGateway {
   }
 
   static async getOrCreateNetInstance(endpoint: IEndpoint): Promise<INet> {
-    const origin = EndpointGateway.getOriginFromEndpoint(endpoint);
-    if (EndpointGateway._netPool.has(origin)) {
-      return EndpointGateway._netPool.get(origin)!;
+    const origin = Gateway.getOriginFromEndpoint(endpoint);
+    if (Gateway._netPool.has(origin)) {
+      return Gateway._netPool.get(origin)!;
     }
     Logger.info('Creating net instance', { origin });
-    const net = await newNetInstance(origin, endpoint.config.method.framework || endpoint.config.actor.framework || GlobalConfig.framework);
-    await net.start?.(origin, endpoint.config.method.cors || endpoint.config.actor.cors || GlobalConfig.cors);
+    const net = await newNetInstance(origin, endpoint.config.net.framework);
+    await net.start?.(origin);
     this._netPool.set(origin, net);
     await this.emit('register', net, origin);
     return net;
@@ -190,7 +193,7 @@ export class EndpointGateway {
     });
 
     const net = await this.getOrCreateNetInstance(endpoint);
-    const response = await net.request(request, endpoint.config.options, endpoint.config.timeout);
+    const response = await net.request(request, endpoint.config.net.framework.request.options);
 
     if (response.exception) {
       Logger.error('Request failed', {
@@ -214,7 +217,7 @@ export class EndpointGateway {
       request
     });
 
-    const nodeEndpoint = EndpointGateway.matchEndpoint(endpoint);
+    const nodeEndpoint = Gateway.matchEndpoint(endpoint);
 
     if (!nodeEndpoint) {
       Logger.error('Endpoint not found', { endpoint });

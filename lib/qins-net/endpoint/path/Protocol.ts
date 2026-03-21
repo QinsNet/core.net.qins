@@ -1,6 +1,6 @@
-import { OperateType, RequestPact, ResponsePact } from "../../decorators/Method";
 import { setValueByPath } from "../../util/ObjectUtil";
 import { ExceptionProtocol, ParameterProtocol, RequestProtocol, ResponseProtocol } from "../../protocol/Protocol";
+import { OperateType, RequestPact, ResponsePact } from "../../config/Method";
 
 export class PathRequestProtocol implements RequestProtocol {
     public version: string = '1'
@@ -12,7 +12,7 @@ export class PathRequestProtocol implements RequestProtocol {
             properties?: unknown
         },
         public parameters: {[key: string]: ParameterProtocol},
-        path?: RequestPact
+        path: RequestPact
     ){
         if(path){
           filterInstance(this,path);
@@ -33,7 +33,7 @@ export class PathResponseProtocol implements ResponseProtocol {
           type: string,
           properties?: unknown
         },
-        path?: ResponsePact,
+        path: ResponsePact,
         public exception?: ExceptionProtocol,
     ){
         if(path){
@@ -45,7 +45,7 @@ export class PathResponseProtocol implements ResponseProtocol {
 }
 
 
-function filterInstance(protocol: RequestProtocol|ResponseProtocol,path: RequestPact){
+function filterInstance(protocol: RequestProtocol|ResponseProtocol,path: RequestPact|ResponsePact){
   const properties = protocol.actor?.properties;
   delete protocol.actor?.properties;
   if(!path.actor){
@@ -53,7 +53,7 @@ function filterInstance(protocol: RequestProtocol|ResponseProtocol,path: Request
   }
   protocol.actor!.properties = ObjectFilter(properties,{},path.actor);
 }
-function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: RequestPact){
+function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: RequestPact|ResponsePact){
   const sourceParameters = {} as {[key: string]: ParameterProtocol};
   Object.values(protocol.parameters).forEach((p) => {
     sourceParameters[p.name] = p;

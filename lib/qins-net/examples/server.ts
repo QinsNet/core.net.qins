@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { EndpointGlobal, EndpointGateway, OperateType } from '../net';
 import { Pack } from './pack';
-import { Method } from '../decorators/Method';
+import { Action } from '../decorators/Method';
 import { Actor } from '../decorators/Actor';
 
 EndpointGlobal.config.listen = true;
@@ -13,7 +13,7 @@ class User {
   password: string = '';
   packages: Pack[] = [];
 
-  @Method({
+  @Action({
     request: {
       actor: {
         id: OperateType.Opaque,
@@ -38,7 +38,7 @@ class User {
   }
 
 
-    @Method({
+    @Action({
       request: {
         actor: {},
         parameters: {

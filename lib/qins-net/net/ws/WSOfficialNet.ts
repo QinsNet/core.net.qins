@@ -1,5 +1,5 @@
 import { serialize } from 'class-transformer';
-import { EndpointGateway } from '../../endpoint/EndpointGateway';
+import { Gateway } from '../../endpoint/Gateway';
 import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import type { INet } from '../INet';
 import { Logger } from '../../util/Logger';
@@ -173,7 +173,7 @@ export class WSOfficialNet implements INet {
   }
 
   async service(data: RequestProtocol): Promise<ResponseProtocol> {
-    return EndpointGateway.service(data);
+    return Gateway.service(data);
   }
 
   async start(host: string): Promise<void> {
@@ -203,7 +203,7 @@ export class WSOfficialNet implements INet {
           method: request.method
         });
 
-        const response = await EndpointGateway.service(request);
+        const response = await Gateway.service(request);
         ws.send(serialize(response));
 
         Logger.info('WSOfficialNet: WebSocket response sent', {

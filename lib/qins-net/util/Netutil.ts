@@ -1,4 +1,4 @@
-import { HTTPRequestFramework, WSFramework, HTTPServiceFramework } from "../config";
+import { HTTPRequestFramework, HTTPServiceFramework, NetProperties, WSFramework } from "../config/Net";
 import { INet, IRequestNet, IServiceNet } from "../net/INet";
 import { HTTPNet } from "../net/http";
 import { EmptyServiceNet } from "../net/http/service/EmptyServiceNet";
@@ -15,21 +15,21 @@ export function getOriginFromEndpoint(endpoint: string): string {
   return url.host;
 }
 
-export async function newNetInstance(origin: string, framework: { ws: WSFramework, request: HTTPRequestFramework, service: HTTPServiceFramework }): Promise<INet> {
+export async function newNetInstance(origin: string, framework: NetProperties['framework']): Promise<INet> {
   const url = new URL(origin);
   const type = url.protocol.replace(":", "");
   let net: INet | undefined = undefined;
 
   if (type === "ws") {
-    if (framework.ws === WSFramework.WS) {
+    if (framework.ws.type === WSFramework.WS) {
       const { WSOfficialNet } = await import("../net/ws/WSOfficialNet");
       net = new WSOfficialNet();
     } else {
       throw new Error("WS framework not supported");
     }
   } else if (type === "http") {
-    const requestFramework = framework.request;
-    const serviceFramework = framework.service;
+    const requestFramework = framework.request.type;
+    const serviceFramework = framework.service.type;
 
     let requestNet: IRequestNet;
     let serviceNet: IServiceNet;

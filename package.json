@@ -25,13 +25,13 @@
     "client": "tsx src/examples/client.ts",
     "test": "tsx src/examples/test.ts",
     "test:compiled": "node --experimental-specifier-resolution=node src/examples/client.js"
- 
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "class-transformer": "^0.5.1",
     "cors": "^2.8.6",
+    "deepmerge": "^4.3.1",
     "express": "^5.2.1",
     "loglevel": "^1.1.0",
     "reflect-metadata": "^0.2.2",

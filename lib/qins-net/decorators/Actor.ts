@@ -1,27 +1,31 @@
 import 'reflect-metadata';
 
 import { Logger } from '../util/Logger';
-import { PathEndpoint } from '../endpoint/path/PathEndpoint';
+import { PathEndpoint } from '../endpoint/path/Endpoint';
 import { ActorProperties } from '../config/Actor';
-import { EndpointConfig } from '../config/EndpointConfig';
-import { GlobalConfig } from '../config/Global';
+import { EndpointProperties } from '../config/Endpoint';
 import { EndpointType } from '../config/Protocol';
 import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
+import deepmerge from 'deepmerge';
+import { Gateway } from '../endpoint/Gateway';
 
 export const METHOD_ENDPOINT_CONFIGS_KEY = '__endpoint_configs__';
-export function Actor(properties?: ActorProperties) {
-  properties ??= {};
+function Actor(properties: Partial<ActorProperties> = {}) {
   return function (constructor: Function) {
-    const configs = getEndpointConfigs(constructor);
-    if (configs) {
-      for (const config of Object.values(configs)) {
-        config.actor.type = properties.actor ?? registerClassTransformerTypeProtocol(constructor as ClassConstructor<unknown>);
-        let endpoint = config.method.endpointInstance;
+    const allEndpointProperties = getAllEndpointProperties(constructor);
+    //register
+    if (allEndpointProperties) {
+      for (const endpointProperties of Object.values(allEndpointProperties)) {
+        const defaultActorProperties = endpointProperties.actor;
+        defaultActorProperties.name = constructor.name;
+        defaultActorProperties.type = registerClassTransformerTypeProtocol(constructor as ClassConstructor<unknown>);
+        endpointProperties.actor = deepmerge(defaultActorProperties, properties || {});
+        let endpoint = endpointProperties.method.endpointInstance;
         if (!endpoint) {
-          const type = config.method.endpointType || config.actor.endpointType || GlobalConfig.type;
+          const type = endpointProperties.method.protocol?.endpointType || Gateway.config.protocol.endpointType;
           if(type === EndpointType.Path){
-            endpoint = new PathEndpoint(endpoint);
+            endpoint = new PathEndpoint(endpointProperties);
           } else {
             throw new Error('Endpoint type not supported');
           }
@@ -33,17 +37,22 @@ export function Actor(properties?: ActorProperties) {
     }
   };
 }
-export function getEndpointConfigs(target: object): Record<string, EndpointConfig> {
-  const constructor = target.constructor as unknown as Record<string, Record<string, EndpointConfig>>;
+
+export function ActorNode(properties: Partial<ActorProperties> = {}) {
+  return Actor(properties);
+}
+
+export function getAllEndpointProperties(target: object): Record<string, EndpointProperties> {
+  const constructor = target.constructor as unknown as Record<string, Record<string, EndpointProperties>>;
   if(!constructor[METHOD_ENDPOINT_CONFIGS_KEY]){
     constructor[METHOD_ENDPOINT_CONFIGS_KEY] = {};
   }
   return constructor[METHOD_ENDPOINT_CONFIGS_KEY];
 }
-export function getEndpointConfig(target: object, name: string): EndpointConfig {
-  const configs = getEndpointConfigs(target);
+export function getEndpointProperties(target: object, name: string): EndpointProperties {
+  const configs = getAllEndpointProperties(target);
   if(!configs[name]){
-    configs[name] = new EndpointConfig();
+    configs[name] = new EndpointProperties();
     return configs[name];
   }
   return configs[name];

@@ -1,64 +1,70 @@
 import 'reflect-metadata';
-import { path2json } from '../endpoint/path/PathProtocol';
+import { path2json } from '../endpoint/path/Protocol';
 import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
-import { MethodConfig, MethodProperties, RequestProperties, ResponseProperties } from '../config/Method';
-import { ParameterConfig } from '../config/Parameter';
-import { getEndpointConfig } from './Actor';
+import { MethodProperties, RequestPact, ResponsePact } from '../config/Method';
+import { ParameterProperties } from '../config/Parameter';
+import {  getEndpointProperties } from './Actor';
+import deepmerge from 'deepmerge';
 
-export function Method(properties?: MethodProperties) {
+export function Action(properties: Partial<MethodProperties> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {
-    properties ??= {};
-    const config = getEndpointConfig(target,propertyKey).method;
+    //endpoint
+    const endpointConfig = getEndpointProperties(target, propertyKey);
+    const config = endpointConfig.method;
     //name
-    config.name = properties.name ?? propertyKey;
+    config.name = propertyKey;
     //result
     const returnType = Reflect.getMetadata('design:returntype', target, propertyKey) as ClassConstructor<unknown>;
-    config.result = properties.result ?? registerClassTransformerTypeProtocol(returnType);
+    config.result = registerClassTransformerTypeProtocol(returnType);
     //handler
     const originalMethod = descriptor.value;
     config.handler = async (instance: object, ...args: unknown[]): Promise<unknown> => {
       return originalMethod.apply(instance, args);
     };
     //isStatic
-    config.isStatic = properties.isStatic ?? !target.hasOwnProperty(propertyKey);
+    config.isStatic = !target.hasOwnProperty(propertyKey);
     //descriptor
     descriptor.value = async (instance: object, ...args: unknown[]): Promise<unknown> => {
-      return config.handler(instance, args);
+      return config.handler!(instance, args);
     };
     //request
-    let request = properties.request ?? {};
-    if (typeof request === 'string') {
-      request = path2json(request) as RequestProperties;
-    }
-    config.request = request ?? {};
+    deepmerge(config,properties);
     //response
-    let response = properties.response ?? {};
-    if (typeof response === 'string') {
-      response = path2json(response) as ResponseProperties;
+    if (typeof config.request === 'string') {
+      config.request = path2json(config.request) as RequestPact;
     }
-    config.response = response ?? {};
+    if (typeof config.response === 'string') {
+      config.response = path2json(config.response) as ResponsePact;
+    }
     //parameters
     mappingParameter(target, propertyKey, config);
+    endpointConfig.method = deepmerge(endpointConfig.method,config);
   };
 
-  function mappingParameter(target: object, propertyKey: string,config: MethodConfig) {
-    const params = [] as ParameterConfig[];
+  function mappingParameter(target: object, propertyKey: string,config: Partial<MethodProperties>) {
     const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as ClassConstructor<unknown>[];
     const paramNames = Reflect.getMetadata('design:paramnames', target, propertyKey) as string[];
-
+    if(!config.parameters) config.parameters = {};
     if (paramTypes && paramTypes.length > 0) {
       for (let i = 0; i < paramTypes.length; i++) {
-        let param = Object.values(config.parameters).find(p=>p.index===i);
-        if(!param){
-          param = new ParameterConfig();
-          params.push(param);
+        if(!Object.values(config.parameters).find(p=>p.index===i)){
+          const param = { name: paramNames[i], type: registerClassTransformerTypeProtocol(paramTypes[i]), index: i } as ParameterProperties;
+          config.parameters[param.name] = param;
         }
-        param.name ??= paramNames[i];
-        param.type ??= registerClassTransformerTypeProtocol(paramTypes[i]);
-        param.index = i;
       }
     }
-    params.forEach(p=>config.parameters[p.name]=p);
   }
+}
+
+export function ActionNode(properties: Partial<MethodProperties | { request?: string, response?: string }> = {}) {
+  //request
+  if (typeof properties.request === 'string') {
+    properties.request = path2json(properties.request) as RequestPact;
+  }
+  //response
+  if (typeof properties.response === 'string') {
+    properties.response = path2json(properties.response) as ResponsePact;
+  }
+  return Action(properties as Partial<MethodProperties>);
 }

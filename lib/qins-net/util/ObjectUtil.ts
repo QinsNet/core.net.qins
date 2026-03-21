@@ -1,4 +1,4 @@
-import { EndpointConfig } from "../config/EndpointConfig";
+import { EndpointProperties } from "../config/Endpoint";
 
 export function getValueByPath(obj: unknown, path: string): unknown {
   if (!path) return obj;

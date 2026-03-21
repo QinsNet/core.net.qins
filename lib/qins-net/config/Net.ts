@@ -3,6 +3,7 @@ export enum HTTPRequestFramework {
 }
 export enum HTTPServiceFramework {
   Express = 'express',
+  Empty = "empty",
 }
 export enum WSFramework {
   WS = 'ws',
@@ -20,15 +21,23 @@ export interface CorsProperties {
   maxAge?: number;
 }
 export interface NetProperties {
-  host?: string;
-  properties?: RequestInit;
-  timeout?: number;
-  framework?: {
-    request?: HTTPRequestFramework;
-    service?: HTTPServiceFramework;
-    ws?: WSFramework;
-  }
-  cors?: CorsProperties;
-  listen?: boolean;
-  netType?: NetType;
+    endpoint: string;
+    host: string;
+    timeout: number;
+    framework: {
+        request: {
+            type: HTTPRequestFramework;
+            options: Record<string, unknown>;
+        }
+        service: {
+            type?: HTTPServiceFramework;
+            options?: Record<string, unknown>;
+        }
+        ws: {
+            type: WSFramework;
+            options: Record<string, unknown>;
+        }
+    }
+    cors?: CorsProperties;
+    netType: NetType;
 }

@@ -1,4 +1,5 @@
 import { RequestPact, ResponsePact } from "../config/Action";
+import { ParameterProperties } from "../config/Parameter";
 import { PathRequestProtocol, PathResponseProtocol } from "../node/path/Protocol";
 import { ResponseProtocol,RequestProtocol, ExceptionProtocol } from "../protocol/Protocol";
 
@@ -12,10 +13,10 @@ export class ProtocolBuilder{
       ...exception,
     };
   }
-  static buildPathRequest(request: RequestProtocol,path: RequestPact): PathRequestProtocol {
-    return new PathRequestProtocol(request.node,request.method,request.actor,request.parameters,path);
+  static buildPathRequest(request: RequestProtocol,path: RequestPact,config: {[key: string]: ParameterProperties}): PathRequestProtocol {
+    return new PathRequestProtocol(request.node,request.method,request.actor,request.parameters,path,config);
   }
-  static buildPathResponse(response: ResponseProtocol,path: ResponsePact): PathResponseProtocol {
-    return new PathResponseProtocol(response.node,response.actor,response.parameters,response.result,path);
+  static buildPathResponse(response: ResponseProtocol,path: ResponsePact,config: {[key: string]: ParameterProperties}): PathResponseProtocol {
+    return new PathResponseProtocol(response.node,response.actor,response.parameters,response.result,path,config);  
   }
 }

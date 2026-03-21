@@ -7,6 +7,7 @@ export interface TypeProtocol<T> {
 export interface ParameterProtocol {
   name: string;
   type: string;
+  index: number;
   properties?: unknown
 }
 export interface ExceptionProtocol {

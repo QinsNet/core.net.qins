@@ -1,6 +1,7 @@
 import { setValueByPath } from "../../util/ObjectUtil";
 import { ExceptionProtocol, ParameterProtocol, RequestProtocol, ResponseProtocol } from "../../protocol/Protocol";
 import { OperateType, RequestPact, ResponsePact } from "../../config/Action";
+import { ParameterProperties } from "../../config/Parameter";
 
 export class PathRequestProtocol implements RequestProtocol {
     public version: string = '1'
@@ -12,11 +13,12 @@ export class PathRequestProtocol implements RequestProtocol {
             properties?: unknown
         },
         public parameters: {[key: string]: ParameterProtocol},
-        path: RequestPact
+        path: RequestPact,
+        config: {[key: string]: ParameterProperties}
     ){
         if(path){
           filterInstance(this,path);
-          filterParameters(this,path);
+          filterParameters(this,path,config);
         }
     }
 }
@@ -34,11 +36,12 @@ export class PathResponseProtocol implements ResponseProtocol {
           properties?: unknown
         },
         path: ResponsePact,
-        public exception?: ExceptionProtocol,
+        config: {[key: string]: ParameterProperties},
+        public exception?: ExceptionProtocol
     ){
         if(path){
           filterInstance(this,path);
-          filterParameters(this,path);
+          filterParameters(this,path,config);
           filterResult(this,path);
         }
     }
@@ -53,7 +56,7 @@ function filterInstance(protocol: RequestProtocol|ResponseProtocol,path: Request
   }
   protocol.actor!.properties = ObjectFilter(properties,{},path.actor);
 }
-function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: RequestPact|ResponsePact){
+function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: RequestPact|ResponsePact,config: {[key: string]: ParameterProperties}){
   const sourceParameters = {} as {[key: string]: ParameterProtocol};
   Object.values(protocol.parameters).forEach((p) => {
     sourceParameters[p.name] = p;
@@ -61,7 +64,12 @@ function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: Reque
   })
   if(path.parameters){
     for(const [name,parameter] of Object.entries(path.parameters)){
-      protocol.parameters[name].properties = ObjectFilter(sourceParameters[name].properties,{},parameter as {[key: string]: unknown});
+      const index = config[name].index;
+      const param = Object.values(sourceParameters).find(p=>p.index == index);
+      if(!param){
+        throw new Error(`Parameter ${name} not found`);
+      }
+      protocol.parameters[name].properties = ObjectFilter(param.properties,{},parameter as {[key: string]: unknown});
     }
   }
 }

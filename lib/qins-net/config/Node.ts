@@ -40,6 +40,8 @@ export class NodeProperties {
         handler: () => Promise.resolve(),
         isStatic: false,
         parameters: {},
-        result: registerVoidTypeProtocol(),
+        result: {
+            type: registerVoidTypeProtocol(),
+        },
     };
 }

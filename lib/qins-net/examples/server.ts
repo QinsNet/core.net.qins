@@ -4,6 +4,7 @@ import { Pack } from './pack';
 import { ActionNode } from '../decorators/Action';
 import { ActorNode } from '../decorators/Actor';
 import { Gateway } from '../node/Gateway';
+import { registerClassTransformerTypeProtocol, registerVoidTypeProtocol } from '../serialize/SerializeFunction';
 
 Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Express } }
 Gateway.config.net.endpoint = 'http://localhost:8080';
@@ -28,7 +29,10 @@ class User {
         email: OperateType.Local,
         password: OperateType.Local,
       },
-    }
+    },
+    result: {
+      type: registerVoidTypeProtocol(),
+    },
   })
   async getUser(): Promise<void> {
     if(this.id == '123' && this.password == '1234'){
@@ -57,6 +61,9 @@ class User {
           name: OperateType.Local,
           version: OperateType.Local,
         }
+      },
+      result: {
+        type: registerClassTransformerTypeProtocol(Pack),
       },
     })
     async addPackage(pack: Pack): Promise<Pack> {

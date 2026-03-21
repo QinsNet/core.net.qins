@@ -112,7 +112,7 @@ export class PathNode implements INode {
       method: this.config.name,
       parameters: params,
     };
-    return ProtocolBuilder.buildPathRequest(request, this.config.method.request);
+    return ProtocolBuilder.buildPathRequest(request, this.config.method.request, this.config.method.parameters);
   }
 
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
@@ -129,11 +129,11 @@ export class PathNode implements INode {
       result: {
           type: this.config.method.result.type.name,
           ...(result !== undefined && {
-            properties: JSON.parse(this.config.method.result.serialize(result))
+            properties: JSON.parse(this.config.method.result.type.serialize(result))
           })
         },
     };
-    return ProtocolBuilder.buildPathResponse(response, this.config.method.response);
+    return ProtocolBuilder.buildPathResponse(response, this.config.method.response, this.config.method.parameters);
   }
 
   private extractParams(request: RequestProtocol): unknown[] {
@@ -159,6 +159,7 @@ export class PathNode implements INode {
       params[param.name] = {
         name: param.name,
         type: param.type.name,
+        index: param.index,
         ...(!arg && {
           properties: record ? JSON.parse(param.type.serialize(arg)) : arg,
         })

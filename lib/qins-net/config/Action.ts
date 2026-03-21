@@ -26,7 +26,9 @@ export interface MethodProperties {
   handler: (instance: object, ...args: unknown[]) => Promise<unknown>;
   isStatic: boolean;
   parameters: { [key: string]: ParameterProperties };
-  result: TypeProtocol<unknown>;
+  result: {
+    type: TypeProtocol<unknown>;
+  }
 
   net?: Object.Partial<NetProperties,'deep'>;
 

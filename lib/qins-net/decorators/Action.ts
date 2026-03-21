@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { path2json } from '../node/path/Protocol';
-import { registerClassTransformerTypeProtocol, registerVoidTypeProtocol } from '../serialize/SerializeFunction';
+import { registerClassTransformerTypeProtocol,  } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
 import { MethodProperties, RequestPact, ResponsePact } from '../config/Action';
 import { ParameterProperties } from '../config/Parameter';
@@ -8,7 +8,6 @@ import {  getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
 import { Gateway } from '../node/Gateway';
-
 export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {
     //node
@@ -17,9 +16,9 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
     //name
     config.name = propertyKey;
     //result
-    const returnType = Reflect.getMetadata('design:returntype', target, propertyKey) as ClassConstructor<unknown>;
-    if(!returnType) config.result = registerVoidTypeProtocol();
-    else config.result = registerClassTransformerTypeProtocol(returnType);
+    if(!config.result.type){
+      throw new Error(`Action ${propertyKey} result type is not defined`);
+    }
     //handler
     const originalMethod = descriptor.value;
     config.handler = async (instance: object, ...args: unknown[]): Promise<unknown> => {
@@ -28,10 +27,10 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
     //isStatic
     config.isStatic = !target.hasOwnProperty(propertyKey);
     //descriptor
-    descriptor.value = async function (instance: object,...args: unknown[]): Promise<unknown> {
+    descriptor.value = async function (this: object, ...args: unknown[]): Promise<unknown> {
       const node = Gateway.findNode(nodeConfig.net.endpoint);
       if(!node) throw new Error(`Node ${nodeConfig.net.endpoint} not found`);
-      return node.request(instance, ...args);
+      return node.request(this, ...args);
     };
     //parameters
     mappingParameter(target, propertyKey, config);

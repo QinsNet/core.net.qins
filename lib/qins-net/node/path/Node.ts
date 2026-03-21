@@ -22,9 +22,9 @@ export class PathNode implements INode {
     this.config.net = deepmerge(this.config.net, this.config.method.net || {});
     this.config.protocol = deepmerge(this.config.protocol, this.config.method.protocol || {});
     //确定node
-    const node = this.config.method.net?.node && this.config.method.net?.node 
-    || this.config.actor.net?.node && this.config.actor.net?.node + '/' + this.config.method.name 
-    || Gateway.config.net.node && Gateway.config.net.node + '/' + this.config.actor.name + '/' + this.config.method.name
+    const node = this.config.method.net?.endpoint && this.config.method.net?.endpoint 
+    || this.config.actor.net?.endpoint && this.config.actor.net?.endpoint + '/' + this.config.method.name 
+    || Gateway.config.net.endpoint && Gateway.config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
     || this.config.net.netType && this.config.net.host && `${this.config.net.netType}://${this.config.net.host}/${this.config.actor.name}/${this.config.method.name}`;
     if(!node){
       throw new Error('Node path is not valid');

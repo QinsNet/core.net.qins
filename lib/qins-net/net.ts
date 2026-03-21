@@ -1,13 +1,25 @@
 export type { RequestProtocol, ResponseProtocol, ExceptionProtocol } from './protocol/Protocol';
 export { PathRequestProtocol, PathResponseProtocol, path2json, ObjectFilter } from './node/path/Protocol';
-export type { NetConfig, RemoteConfig, GlobalNodeConfig, ActorConfig as NodeClassConfig, MethodConfig as NodeMethodConfig, NodeConfig as NodeNodeConfig, CorsConfig, NodeType } from './config';
-export { mergeConfigs } from './config';
+export type {
+  NetProperties as NetConfig,
+  CorsProperties as CorsConfig,
+} from './config/Net';
+export {
+  HTTPRequestFramework,
+  HTTPServiceFramework,
+  WSFramework,
+  NetType,
+} from './config/Net';
+export { NodeType } from './config/Protocol';
+export type { ActorProperties as ActorConfig } from './config/Actor';
+export type { MethodProperties as MethodConfig, RequestPact, ResponsePact } from './config/Action';
+export { OperateType } from './config/Action';
+export type { ProtocolProperties } from './config/Protocol';
+export { NodeProperties as NodeConfig } from './config/Node';
+export { GatewayConfig } from './config/Gateway';
 export { PathNode as Node } from './node/path/Node';
 export { Gateway as NodeGateway } from './node/Node';
-export { NodeGlobal } from './node/NodeGlobal';
 export { Actor as NodeClass } from './decorators/Actor';
 export { Action as NodeMethod } from './decorators/Action';
-export type { RequestPact, ResponsePact } from './decorators/Action';
-export { OperateType } from './decorators/Action';
 export type { INet, IRequestNet, IServiceNet } from './net/INet';
 export { Logger } from './util/Logger';

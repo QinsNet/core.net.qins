@@ -1,5 +1,3 @@
-import { NodeProperties } from "../config/Node";
-
 export function getValueByPath(obj: unknown, path: string): unknown {
   if (!path) return obj;
   const keys = path.split('.');

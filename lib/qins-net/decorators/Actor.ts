@@ -9,9 +9,12 @@ import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunc
 import { ClassConstructor } from 'class-transformer';
 import deepmerge from 'deepmerge';
 import { Gateway } from '../node/Node';
+import { Object as ObjectTB } from "ts-toolbelt"
+
+
 
 export const METHOD_ENDPOINT_CONFIGS_KEY = '__node_configs__';
-function Actor(properties: Partial<ActorProperties> = {}) {
+export function Actor(properties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {  
   return function (constructor: Function) {
     const allNodeProperties = getAllNodeProperties(constructor);
     //register
@@ -38,7 +41,7 @@ function Actor(properties: Partial<ActorProperties> = {}) {
   };
 }
 
-export function ActorNode(properties: Partial<ActorProperties> = {}) {
+export function ActorNode(properties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
   return Actor(properties);
 }
 

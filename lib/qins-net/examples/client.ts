@@ -1,12 +1,13 @@
 import 'reflect-metadata';
-import { NodeGlobal, OperateType } from '../net';
+import {  HTTPServiceFramework, OperateType } from '../net';
 import { Actor } from '../decorators/Actor';
-import { Action } from '../decorators/Action';
+import { Action, ActionNode } from '../decorators/Action';
 import { Pack } from './pack';
+import { Gateway } from '../node/Node';
 
-NodeGlobal.config.listen = false;
-
-@Actor({ node: 'http://localhost:8080/user' })
+Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Empty } }
+Gateway.config.net.endpoint = 'http://localhost:8080/user';
+@Actor()
 class User {
   id: string = '';
   name: string = '';
@@ -14,18 +15,18 @@ class User {
   password: string = '';
   packages: Pack[] = [];
 
-  @Action({
+  @ActionNode({
     request: {
       actor: {
-        id: OperateType.Opaque,
-        password: OperateType.Opaque,
+        id: OperateType.Local,
+        password: OperateType.Local,
       },
     },
     response: {
       actor: {
-        name: OperateType.Opaque,
-        email: OperateType.Opaque,
-        password: OperateType.Opaque,
+        name: OperateType.Local,
+        email: OperateType.Local,
+        password: OperateType.Local,
       },
     },
   })
@@ -39,17 +40,17 @@ class User {
         actor: {},
         parameters: {
           pack: {
-            name: OperateType.Opaque,
+            name: OperateType.Local,
           },
         }
       },
       response: {
         actor: {
-          packages: OperateType.Opaque,
+          packages: OperateType.Local,
         },
         result: {
-          name: OperateType.Opaque,
-          version: OperateType.Opaque,
+          name: OperateType.Local,
+          version: OperateType.Local,
         }
       },
     })

@@ -1,9 +1,9 @@
 import { NetProperties } from "./Net";
 import { ProtocolProperties } from "./Protocol";
-
-export class GatewayConfig{
+import { Object } from "ts-toolbelt"
+export class GatewayConfig {
     name: string = '';
     enabled: boolean = true;
-    net: Partial<NetProperties> = {};
-    protocol: Partial<ProtocolProperties> = {};
+    net: Object.Partial<NetProperties,'deep'> = {};
+    protocol: Object.Partial<ProtocolProperties,'deep'> = {};
 }

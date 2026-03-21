@@ -1,11 +1,13 @@
 import 'reflect-metadata';
-import { NodeGlobal, NodeGateway, OperateType } from '../net';
+import { HTTPServiceFramework, OperateType } from '../net';
 import { Pack } from './pack';
 import { Action } from '../decorators/Action';
 import { Actor } from '../decorators/Actor';
+import { Gateway } from '../node/Node';
 
-NodeGlobal.config.listen = true;
-@Actor({ node: 'http://localhost:8080/user'})
+Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Express } }
+Gateway.config.net.endpoint = 'http://localhost:8080/user';
+@Actor()
 class User {
   id: string = '';
   name: string = '';
@@ -16,15 +18,15 @@ class User {
   @Action({
     request: {
       actor: {
-        id: OperateType.Opaque,
-        password: OperateType.Opaque,
+        id: OperateType.Local,
+        password: OperateType.Local,
       },
     },
     response: {
       actor: {
-        name: OperateType.Opaque,
-        email: OperateType.Opaque,
-        password: OperateType.Opaque,
+        name: OperateType.Local,
+        email: OperateType.Local,
+        password: OperateType.Local,
       },
     },
   })
@@ -43,17 +45,17 @@ class User {
         actor: {},
         parameters: {
           pack: {
-            name: OperateType.Opaque,
+            name: OperateType.Local,
           },
         }
       },
       response: {
         actor: {
-          packages: OperateType.Opaque,
+          packages: OperateType.Local,
         },
         result: {
-          name: OperateType.Opaque,
-          version: OperateType.Opaque,
+          name: OperateType.Local,
+          version: OperateType.Local,
         }
       },
     })
@@ -68,26 +70,26 @@ class User {
     }
 }
 
-NodeGateway.on('register', (_net, origin) => {
+Gateway.on('register', (_net, origin) => {
   console.log(`Net registered: ${origin}`);
 });
 
-NodeGateway.on('unregister', (_net, origin) => {
+Gateway.on('unregister', (_net, origin) => {
   console.log(`Net unregistered: ${origin}`);
 });
 
-NodeGateway.on('empty', () => {
+Gateway.on('empty', () => {
   console.log('All nets stopped.');
 });
 
 async function main() {
-  console.log('Gateway running:', NodeGateway.running);
-  console.log('Nodes registered:', NodeGateway.nodeCount);
+  console.log('Gateway running:', Gateway.running);
+  console.log('Nodes registered:', Gateway.nodeCount);
   
   console.log('\nStarting gateway...');
-  await NodeGateway.start();
-  console.log('Gateway started, running:', NodeGateway.running);
-  console.log('Nets running:', NodeGateway.netPoolSize);
+  await Gateway.start();
+  console.log('Gateway started, running:', Gateway.running);
+  console.log('Nets running:', Gateway.netPoolSize);  
   
   console.log('\nGateway is now running and waiting...');
   console.log('Press Ctrl+C to stop.');

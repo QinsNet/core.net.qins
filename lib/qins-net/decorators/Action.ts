@@ -6,8 +6,9 @@ import { MethodProperties, RequestPact, ResponsePact } from '../config/Action';
 import { ParameterProperties } from '../config/Parameter';
 import {  getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
+import { Object as ObjectTB } from "ts-toolbelt"
 
-export function Action(properties: Partial<MethodProperties> = {}) {
+export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {
     //node
     const nodeConfig = getNodeProperties(target, propertyKey);
@@ -44,12 +45,11 @@ export function Action(properties: Partial<MethodProperties> = {}) {
 
   function mappingParameter(target: object, propertyKey: string,config: Partial<MethodProperties>) {
     const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as ClassConstructor<unknown>[];
-    const paramNames = Reflect.getMetadata('design:paramnames', target, propertyKey) as string[];
     if(!config.parameters) config.parameters = {};
     if (paramTypes && paramTypes.length > 0) {
       for (let i = 0; i < paramTypes.length; i++) {
         if(!Object.values(config.parameters).find(p=>p.index===i)){
-          const param = { name: paramNames[i], type: registerClassTransformerTypeProtocol(paramTypes[i]), index: i } as ParameterProperties;
+          const param = { name: `param${i}`, type: registerClassTransformerTypeProtocol(paramTypes[i]), index: i } as ParameterProperties;
           config.parameters[param.name] = param;
         }
       }
@@ -66,5 +66,5 @@ export function ActionNode(properties: Partial<MethodProperties | { request?: st
   if (typeof properties.response === 'string') {
     properties.response = path2json(properties.response) as ResponsePact;
   }
-  return Action(properties as Partial<MethodProperties>);
+  return Action(properties as ObjectTB.Partial<MethodProperties,'deep'>);
 }

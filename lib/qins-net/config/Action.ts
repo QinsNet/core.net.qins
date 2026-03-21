@@ -3,20 +3,21 @@ import { INode } from "../node/INode";
 import { TypeProtocol } from "../protocol/Protocol";
 import { ParameterProperties } from "./Parameter";
 import { ProtocolProperties } from "./Protocol";
+import { Object } from "ts-toolbelt"
 
 export enum OperateType {
-  Opaque = 'opaque',
+  Local = 'local',
 }
-
+export type PactType = { [key: string]: PactType } | OperateType;
 export interface RequestPact {
-  actor?: Record<string, unknown> | OperateType;
-  parameters?: Record<string, ParameterProperties> | OperateType;
+  actor?: PactType;
+  parameters?: PactType;
 }
 
 export interface ResponsePact {
-  actor?: Record<string, unknown> | OperateType;
-  parameters?: Record<string, unknown> | OperateType;
-  result?: Record<string, unknown> | OperateType;
+  actor?: PactType;
+  parameters?: PactType;
+  result?: PactType;
 }
 export interface MethodProperties {
   name: string;
@@ -27,7 +28,7 @@ export interface MethodProperties {
   parameters: { [key: string]: ParameterProperties };
   result: TypeProtocol<unknown>;
 
-  net?: NetProperties;
+  net?: Object.Partial<NetProperties,'deep'>;
   nodeInstance?: INode;
   protocol?: ProtocolProperties;
 }

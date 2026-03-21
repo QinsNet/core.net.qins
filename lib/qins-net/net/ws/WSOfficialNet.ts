@@ -4,7 +4,7 @@ import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol'
 import type { INet } from '../INet';
 import { Logger } from '../../util/Logger';
 import { ProtocolBuilder } from '../../util/Protocol';
-import type { CorsConfig } from '../../config';
+import { CorsProperties } from '../../config/Net';
 
 type WsServer = {
   server: import('http').Server;
@@ -85,10 +85,10 @@ async function createWsServer(
 }
 
 export class WSOfficialNet implements INet {
-  private _cors: CorsConfig = { origin: [], methods: [], allowedHeaders: [], exposedHeaders: [], credentials: false, maxAge: 0 };
+  private _cors: CorsProperties = { origin: [], methods: [], allowedHeaders: [], exposedHeaders: [], credentials: false, maxAge: 0 };
   private _server: WsServer | null = null;
 
-  addCors(cors?: CorsConfig): void {
+  addCors(cors?: CorsProperties): void {
     if (!cors) return;
     this._cors.allowedHeaders?.push(...cors.allowedHeaders || []);
     this._cors.exposedHeaders?.push(...cors.exposedHeaders || []);
@@ -177,17 +177,10 @@ export class WSOfficialNet implements INet {
   }
 
   async start(host: string): Promise<void> {
-    const { NodeGlobal } = await import('../../node/NodeGlobal');
-    if (NodeGlobal.config.listen === false) {
-      Logger.debug('WSOfficialNet: WebSocket listen disabled by config');
-      return;
-    }
-
     if (this._server) {
       Logger.warn('WSOfficialNet: WebSocket server already started');
       return;
     }
-
     const url = new URL(host);
     const hostname = url.hostname || '0.0.0.0';
     const port = parseInt(url.port) || 8080;

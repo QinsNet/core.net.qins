@@ -21,21 +21,21 @@ export interface CorsProperties {
   maxAge?: number;
 }
 export interface NetProperties {
-    node: string;
+    endpoint: string;
     host: string;
     timeout: number;
     framework: {
         request: {
             type: HTTPRequestFramework;
-            options: Record<string, unknown>;
+            options?: Record<string, unknown>;
         }
         service: {
-            type?: HTTPServiceFramework;
+            type: HTTPServiceFramework;
             options?: Record<string, unknown>;
         }
         ws: {
             type: WSFramework;
-            options: Record<string, unknown>;
+            options?: Record<string, unknown>;
         }
     }
     cors?: CorsProperties;

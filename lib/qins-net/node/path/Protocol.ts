@@ -73,7 +73,7 @@ function filterResult(protocol: ResponseProtocol,path: ResponsePact){
   }
 }
 export function ObjectFilter(source: unknown, target: unknown, paths: Record<string, unknown> | OperateType): unknown {
-  if(paths === OperateType.Opaque){
+  if(paths === OperateType.Local){
     if(typeof source !== 'object'){
       return source;
     }
@@ -98,7 +98,7 @@ export function ObjectFilter(source: unknown, target: unknown, paths: Record<str
     if (hasNestedPath) {
       targetMap[key] = {};
       ObjectFilter(sourceValue, targetMap[key], pathValue as Record<string, unknown> | OperateType);
-    } else if (pathValue === OperateType.Opaque) {
+    } else if (pathValue === OperateType.Local) {
       targetMap[key] = sourceValue;
     }
   }
@@ -106,7 +106,7 @@ export function ObjectFilter(source: unknown, target: unknown, paths: Record<str
 }
 
 
-export function path2json(pathString: string, leafValue: OperateType = OperateType.Opaque): RequestPact|ResponsePact {
+export function path2json(pathString: string, leafValue: OperateType = OperateType.Local): RequestPact|ResponsePact {
   const result: Record<string, unknown> = {};
   
   if (!pathString || typeof pathString !== 'string') {

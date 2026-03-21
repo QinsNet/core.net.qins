@@ -8,8 +8,8 @@ export class NodeProperties {
     name: string = '';
     node: string = '';
     enabled: boolean = true;
-    net = {
-        node: '',
+    net: NetProperties = {
+        endpoint: '',
         host: '',
         framework: {
             request: {
@@ -27,14 +27,14 @@ export class NodeProperties {
         },
         netType: NetType.HTTP,
         timeout: 0,
-    } as NetProperties;
+    };
     protocol = { nodeType: NodeType.Path };
-    actor = {
+    actor: ActorProperties = {
         name: '',
         type: registerVoidTypeProtocol(),
         attributes: {},
-    } as ActorProperties;
-    method = {
+    };
+    method: MethodProperties = {
         name: '',
         request: {},
         response: {},
@@ -42,5 +42,5 @@ export class NodeProperties {
         isStatic: false,
         parameters: {},
         result: registerVoidTypeProtocol(),
-    } as MethodProperties;
+    };
 }

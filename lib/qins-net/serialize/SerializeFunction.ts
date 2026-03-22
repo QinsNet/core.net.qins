@@ -1,4 +1,4 @@
-import { ClassConstructor, ClassTransformOptions, instanceToPlain, plainToClass, plainToClassFromExist } from "class-transformer";
+import { ClassConstructor, ClassTransformOptions, instanceToPlain, plainToClassFromExist } from "class-transformer";
 import { TypeProtocol } from "../protocol/Protocol";
 import { Gateway } from "../node/Gateway";
 

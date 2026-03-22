@@ -5,7 +5,7 @@ import { ProtocolProperties } from "./Protocol";
 
 export interface ActorProperties {
   name: string;
-  type: TypeProtocol<unknown>;
+  type: TypeProtocol<any>;
   attributes: {[key: string]: AttributeProperties};
   net?: NetProperties;
   protocol?: ProtocolProperties;

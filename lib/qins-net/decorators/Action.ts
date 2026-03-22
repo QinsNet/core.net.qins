@@ -51,7 +51,7 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
   }
 }
 
-export function ActionNode(properties: Partial<MethodProperties | { request?: string, response?: string }> = {}) {
+export function ActionNode(properties: ObjectTB.Partial<MethodProperties | { request?: string, response?: string },'deep'> = {}) {
   //request
   if (typeof properties.request === 'string') {
     properties.request = path2json(properties.request) as RequestPact;

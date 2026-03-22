@@ -4,22 +4,21 @@ export default defineConfig({
   build: {
     lib: {
       formats: ['es', 'cjs'],
-      entry: './lib/qins-net/a.ts',
+      entry: './lib/qins-net/index.ts',
       name: 'QinsNet',
       fileName: 'qins-net',
     },
     rollupOptions: {
-      treeshake: false,
-      output: {
-        preserveModules: true, // ✅ 保留文件结构
-        entryFileNames: '[name].[format]', // ✅ 输出文件名规则
-        dir: 'dist',
-        inlineDynamicImports: false,
-      }
+      external: ['reflect-metadata','express'],
+    }
+  },
+  server: {
+    watch: {
+      ignored: ['**/node_modules/**'],
     },
   },
   optimizeDeps: {
-    include: ['reflect-metadata'],
+    noDiscovery: true,
   },
   plugins: [
     dtsPlugin({

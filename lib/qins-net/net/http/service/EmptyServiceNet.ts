@@ -1,5 +1,5 @@
 import { CorsProperties } from "../../../config/Net";
-import { RequestProtocol, ResponseProtocol } from "../../../net";
+import { RequestProtocol, ResponseProtocol } from "../../..";
 import logger from "../../../util/Logger";
 import { IServiceNet } from "../../INet";
 

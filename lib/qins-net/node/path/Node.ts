@@ -6,7 +6,7 @@ import { ProtocolBuilder } from '../../util/Protocol';
 import { INode } from '../INode';
 import { OperateType } from '../../config/Action';
 import { NodeProperties } from '../../config/Node';
-import { NetType } from '../../net';
+import { NetType } from '../..';
 
 export class PathNode implements INode {
   config: NodeProperties;

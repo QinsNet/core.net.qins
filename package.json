@@ -1,19 +1,21 @@
 {
   "name": "qins-net",
-  "private": true,
-  "version": "0.1.0",
+  "version": "0.1.9",
   "type": "module",
+  "author": "EtherealMz",
+  "email": "EtherealMz@outlook.com",
+  "description": "QinsNet核心网络框架",
   "files": [
     "dist",
-    "lib"
+    "index.d.ts"
   ],
-  "main": "./dist/lib/qins-net/net.es",
-  "types": "./dist/lib/qins-net/net.d.ts",
+  "main": "./dist/qins-net.js",
+  "types": "./dist/lib/qins-net/qins-net.d.ts",
   "exports": {
     "./net": {
-      "types": "./dist/lib/qins-net/net.d.ts",
-      "import": "./dist/lib/qins-net/net.es",
-      "require": "./dist/lib/qins-net/net.cjs"
+      "types": "./dist/lib/qins-net/qins-net.d.ts",
+      "import": "./dist/qins-net.js",
+      "require": "./dist/qins-net.cjs"
     }
   },
   "scripts": {
@@ -34,6 +36,7 @@
     "deepmerge": "^4.3.1",
     "express": "^5.2.1",
     "loglevel": "^1.1.0",
+    "qins-net": "^0.1.4",
     "reflect-metadata": "^0.2.2",
     "ts-toolbelt": "^9.6.0",
     "vite-plugin-dts": "^4.5.4",
@@ -46,5 +49,17 @@
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vite-node": "^6.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QinsNet/core.net.qins.git"
+  },
+  "keywords": [
+    "QinsNet核心网络框架"
+  ],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/QinsNet/core.net.qins/issues"
+  },
+  "homepage": "https://github.com/QinsNet/core.net.qins"
 }

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import {  HTTPServiceFramework, OperateType } from '../net';
+import {  HTTPServiceFramework, OperateType } from '..';
 import { ActorNode } from '../decorators/Actor';
 import { Action } from '../decorators/Action';
 import { Pack } from './pack';

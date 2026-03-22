@@ -1,6 +1,6 @@
 import { NodeProperties } from "../config/Node";
-import { RequestProtocol } from "../net";
-import { ResponseProtocol } from "../net";
+import { RequestProtocol } from "..";
+import { ResponseProtocol } from "..";
 
 export interface INode {
   config: NodeProperties;

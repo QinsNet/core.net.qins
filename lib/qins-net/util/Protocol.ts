@@ -1,5 +1,4 @@
 import { RequestPact, ResponsePact } from "../config/Action";
-import { ParameterProperties } from "../config/Parameter";
 import { PathRequestProtocol, PathResponseProtocol } from "../node/path/Protocol";
 import { ResponseProtocol,RequestProtocol, ExceptionProtocol } from "../protocol/Protocol";
 

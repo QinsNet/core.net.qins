@@ -1,5 +1,4 @@
 import { NetProperties} from "./Net";
-import { INode } from "../node/INode";
 import { TypeProtocol } from "../protocol/Protocol";
 import { ParameterProperties } from "./Parameter";
 import { ProtocolProperties } from "./Protocol";

@@ -138,7 +138,7 @@ class User {
   name: string = "";
   email: string = "";
   password: string = "";
-  @AttributeNode({ name: "packages", type: { type: [],name: "Pack[]",serialize: serializePack, deserialize: deserializePack } })
+  @AttributeNode({ name: "packages" })
   packages: Pack[] = [];
 
   @ActionNode({

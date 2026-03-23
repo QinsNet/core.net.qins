@@ -18,110 +18,108 @@
 
 # 使用示例
 
-## Client
+## Request
 
 ```typescript
-import 'reflect-metadata';
-import {  HTTPServiceFramework, OperateType } from '..';
-import { ActorNode } from '../decorators/Actor';
-import { Action } from '../decorators/Action';
-import { Pack } from './pack';
-import { Gateway } from '../node/Gateway';
-import { registerClassTransformerTypeProtocol, registerVoidTypeProtocol } from '../serialize/SerializeFunction';
-import { ParameterNode } from '../decorators/Parameter';
+import "reflect-metadata";
 
-Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Empty } }
-Gateway.config.net.endpoint = 'http://localhost:8080';
+import { Gateway, HTTPServiceFramework, ActorNode, AttributeNode, ActionNode, OperateType, TypeNode, ParameterNode, LoggerLevel } from "@qinsteam/net-core";
+import { Pack } from "./pack";
+
+Gateway.config.net.framework = {
+  service: { type: HTTPServiceFramework.Empty },
+};
+Gateway.config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
-  id: string = '';
-  name: string = '';
-  email: string = '';
-  password: string = '';
+  @AttributeNode({ name: "id" })
+  id: string = "";
+  @AttributeNode({ name: "name" })
+  name: string = "";
+  @AttributeNode({ name: "email" })
+  email: string = "";
+  @AttributeNode({ name: "password" })
+  password: string = "";
+  @AttributeNode({ name: "packages" })
   packages: Pack[] = [];
 
-  @Action({
-    request: {
-      actor: {
-        id: OperateType.Local,
-        password: OperateType.Local,
+  @ActionNode({
+    pact: {
+      request: {
+        actor: {
+          id: [OperateType.Local],
+          password: [OperateType.Local],
+        },
       },
-    },
-    response: {
-      actor: {
-        name: OperateType.Local,
-        email: OperateType.Local,
-        password: OperateType.Local,
+      response: {
+        actor: {
+          name: [OperateType.Local],
+          email: [OperateType.Local],
+          password: [OperateType.Local],
+        },
       },
     },
     result: {
-      type: registerVoidTypeProtocol(),
+      type: TypeNode(void 0),
     },
   })
   async getUser(): Promise<void> {
     return Promise.resolve();
   }
 
-
-  @Action({
+  @ActionNode({
+    pact: {
       request: {
         actor: {},
         parameters: {
           pack: {
-            id: OperateType.Local,
+            id: [OperateType.Local],
           },
-        }
+        },
       },
       response: {
         actor: {
-          packages: OperateType.Local,
+          packages: [OperateType.Local],
         },
         result: {
-          name: OperateType.Local,
-          version: OperateType.Local,
-        }
+          name: [OperateType.Local],
+          version: [OperateType.Local],
+        },
       },
-      result: {
-        type: registerClassTransformerTypeProtocol(Pack),
-      },
-    })
-    async addPackage(@ParameterNode({name: 'pack'})  pack: Pack): Promise<Pack> {
-      if(this.id == 'aaaa'){
-        this.packages.push(pack);
-        pack.version = '1.0.0';
-        pack.name = 'test';
-        pack.description = 'test package';
-      }
-      return Promise.resolve(pack);
-    }
+    },
+    result: {
+      type: TypeNode(Pack),
+    },
+  })
+  async addPackage(@ParameterNode({ name: "pack" }) pack: Pack): Promise<Pack> {
+    console.log(pack);
+    throw new Error("Method not implemented.");
+  }
 }
 
 void User;
 
 export async function main() {
+  void Gateway.start();
   const user = new User();
-  user.id = '123';
-  user.password = '1234';
-
-  console.log('Sending request with id:', user.id);
-
+  user.id = "123";
+  user.password = "1234";
   try {
     await user.getUser();
-    console.log('Response:');
-    console.log('  name:', JSON.stringify(user));
-    const pack = new Pack()
-    pack.id = 'aaaa';
+    console.log(JSON.stringify(user));
+    const pack = new Pack();
+    pack.id = "aaaa";
     await user.addPackage(pack);
-    console.log('  packages:', JSON.stringify(user));
+    console.log(JSON.stringify(user));
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 }
-
+Gateway.config.log.level = LoggerLevel.Debug;
 main();
 ```
 
-## Server
+## Service
 
 ```typescript
 import "reflect-metadata";
@@ -228,7 +226,9 @@ async function main() {
 main().catch(console.error);
 
 ```
+
 ## 序列化与反序列化
+
 ```typescript
 import { Pack } from "./pack";
 
@@ -242,3 +242,4 @@ export function deserializePack(value: string) {
   }) as Pack[];
 }
 ```
+

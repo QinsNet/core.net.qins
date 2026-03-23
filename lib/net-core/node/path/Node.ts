@@ -1,5 +1,5 @@
 import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
-import { Gateway } from '../../gateway/route/Gateway';
+import { Gateway } from '../../gateway/IGateway';
 import { ObjectFilter } from './Protocol';
 import log from 'loglevel';
 import { ProtocolBuilder } from '../../util/Protocol';
@@ -15,7 +15,7 @@ export class PathNode implements INode {
     this.config = config;
     const endpoint = this.config.method.net?.endpoint && this.config.method.net?.endpoint
     || this.config.actor.net?.endpoint && this.config.actor.net?.endpoint + '/' + this.config.method.name
-    || Gateway.Config.net.endpoint && Gateway.Config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
+    || Gateway.config.net.endpoint && Gateway.config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
     || this.config.net.type && this.config.net.host && `${this.config.net.type}://${this.config.net.host}/${this.config.actor.name}/${this.config.method.name}`;
     this.config.net.type = endpoint.split('://')[0] as NetType;
     this.config.net.host = endpoint.split('://')[1].split('/')[0];

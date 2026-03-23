@@ -3,14 +3,14 @@ import { AttributeNode, HTTPServiceFramework, OperateType } from "..";
 import { Pack } from "./pack";
 import { ActionNode } from "../decorators/Action";
 import { ActorNode } from "../decorators/Actor";
-import { Gateway } from "../gateway/route/Gateway";
+import { Gateway } from "../gateway/IGateway";
 import { TypeNode, VoidType } from "../serialize/SerializeFunction";
 import { ParameterNode } from "../decorators/Parameter";
 
-Gateway.Config.net.framework = {
+Gateway.config.net.framework = {
   service: { type: HTTPServiceFramework.Express },
 };
-Gateway.Config.net.endpoint = "http://localhost:8080";
+Gateway.config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
   @AttributeNode({ name: "id" })

@@ -7,7 +7,7 @@ export class EmptyServiceNet implements IServiceNet {
         throw new Error("Method not implemented." + JSON.stringify(data));
     }
     start?(host: string): Promise<void> {
-        Gateway.Logger.info("EmptyServiceNet start", host);
+        Gateway.logger.info("EmptyServiceNet start", host);
         return Promise.resolve();
     }
     stop?(): Promise<void> {

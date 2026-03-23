@@ -3,15 +3,15 @@ import { AttributeNode, HTTPServiceFramework, OperateType } from "..";
 import { ActorNode } from "../decorators/Actor";
 import { ActionNode } from "../decorators/Action";
 import { Pack } from "./pack";
-import { Gateway } from "../gateway/route/Gateway";
+import { Gateway } from "../gateway/IGateway";
 import { TypeNode } from "../serialize/SerializeFunction";
 import { ParameterNode } from "../decorators/Parameter";
 import { LoggerLevel } from "../config/Logger";
 
-Gateway.Config.net.framework = {
+Gateway.config.net.framework = {
   service: { type: HTTPServiceFramework.Empty },
 };
-Gateway.Config.net.endpoint = "http://localhost:8080";
+Gateway.config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
   @AttributeNode({ name: "id" })
@@ -97,5 +97,5 @@ export async function main() {
     console.error("Error:", error);
   }
 }
-Gateway.Config.log.level = LoggerLevel.Debug;
+Gateway.config.log.level = LoggerLevel.Debug;
 main();

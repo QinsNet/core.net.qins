@@ -2,7 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors, { CorsOptions } from 'cors';
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IServiceNet } from '../../INet';
-import { Gateway } from '../../../gateway/route/Gateway';
+import { Gateway } from '../../../gateway/IGateway';
 import { CorsProperties } from '../../../config/Net';
 
 type HttpServer = {
@@ -35,7 +35,7 @@ function createExpressApp(corsConfig: CorsProperties | undefined): Express {
   app.use(express.json());
 
   app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-    Gateway.Logger.error('Net middleware error', {
+    Gateway.logger.error('Net middleware error', {
       error: err.message,
       path: req.path,
       method: req.method
@@ -69,7 +69,7 @@ async function createHttpServer(
       });
     });
     server.on('error', (err: Error) => {
-      Gateway.Logger.error('Net server error', { hostname, port, error: err.message });
+      Gateway.logger.error('Net server error', { hostname, port, error: err.message });
       reject(err);
     });
   });
@@ -90,7 +90,7 @@ export class ExpressServiceNet implements IServiceNet {
       if (cors.credentials) this._cors.credentials = cors.credentials;
       if (cors.maxAge) this._cors.maxAge = cors.maxAge;
     }
-    Gateway.Logger.debug('Net CORS config added', { cors: this._cors });
+    Gateway.logger.debug('Net CORS config added', { cors: this._cors });
   }
 
   async service(data: RequestProtocol): Promise<ResponseProtocol> {
@@ -111,7 +111,7 @@ export class ExpressServiceNet implements IServiceNet {
     app.post('*splat', async (req: Request, res: Response) => {
       try {
         const request: RequestProtocol = req.body;
-        Gateway.Logger.debug('Net request received', {
+        Gateway.logger.debug('Net request received', {
           node: request.node,
           method: request.method
         });
@@ -119,7 +119,7 @@ export class ExpressServiceNet implements IServiceNet {
         const response = await Gateway.service(request);
         res.status(200).json(response);
       } catch (error) {
-        Gateway.Logger.error('Net request processing error', {
+        Gateway.logger.error('Net request processing error', {
           error: error instanceof Error ? error.message : String(error)
         });
         res.status(400).json({

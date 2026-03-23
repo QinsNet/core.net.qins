@@ -6,11 +6,11 @@ import { ParameterProperties } from '../config/Parameter';
 import {  getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
-import { Gateway } from '../gateway/route/Gateway';
+import { Gateway } from '../gateway/IGateway';
 
 export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {
-    Gateway.Logger.debug('Action decorating', { methodName: propertyKey });
+    Gateway.logger.debug('Action decorating', { methodName: propertyKey });
 
     const nodeConfig = getNodeProperties(target.constructor, propertyKey);
     const config = nodeConfig.method;
@@ -21,7 +21,7 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
       throw new Error(`Action ${propertyKey} result type is not defined`);
     }
 
-    Gateway.Logger.debug('Action result type', {
+    Gateway.logger.debug('Action result type', {
       methodName: propertyKey,
       resultType: config.result.type.name
     });
@@ -42,7 +42,7 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
     mappingParameter(target, propertyKey, config);
     nodeConfig.method = deepmerge(config,properties, { clone: false });
 
-    Gateway.Logger.debug('Action config', {
+    Gateway.logger.debug('Action config', {
       methodName: propertyKey,
       parameters: Object.entries(config.parameters || {}).map(([name, p]) => ({
         name,
@@ -62,7 +62,7 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
           const param = { name: `param${i}`, type: TypeNode(paramTypes[i]), index: i } as ParameterProperties;
           config.parameters[param.name] = param;
 
-          Gateway.Logger.debug('Parameter config', {
+          Gateway.logger.debug('Parameter config', {
             methodName: propertyKey,
             parameter: {
               name: param.name,

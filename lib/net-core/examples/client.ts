@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { HTTPServiceFramework, OperateType } from "..";
+import { AttributeNode, HTTPServiceFramework, OperateType } from "..";
 import { ActorNode } from "../decorators/Actor";
 import { ActionNode } from "../decorators/Action";
 import { Pack } from "./pack";
@@ -17,6 +17,8 @@ class User {
   name: string = "";
   email: string = "";
   password: string = "";
+  
+  @AttributeNode({ name: "packages" })
   packages: Pack[] = [];
 
   @ActionNode({

@@ -6,9 +6,7 @@ import { getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
 
-
-
-export function ParameterNode(properties: ObjectTB.Partial<ParameterProperties,'deep'> = {}) {
+function Parameter(properties: ObjectTB.Partial<ParameterProperties,'deep'> = {}) {
   return function (target: object, propertyKey: string, parameterIndex: number) {
     const defaultProperties = {} as ObjectTB.Partial<ParameterProperties,'deep'>;
     //名称
@@ -24,4 +22,8 @@ export function ParameterNode(properties: ObjectTB.Partial<ParameterProperties,'
     const param = deepmerge(defaultProperties as ParameterProperties,properties, { clone: false });
     nodeConfig.method.parameters[param.name] = param;
   };
+}
+
+export function ParameterNode(properties: ObjectTB.Partial<ParameterProperties,'deep'> = {}) {
+  return Parameter(properties);
 }

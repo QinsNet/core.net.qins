@@ -121,10 +121,10 @@ import { Gateway, HTTPServiceFramework, ActorNode, ActionNode, OperateType, Void
 import { Pack } from "./pack";
 import { deserializePack, serializePack } from "./serialize";
 
-Gateway.Config.net.framework = {
+Gateway.config.net.framework = {
   service: { type: HTTPServiceFramework.Express },
 };
-Gateway.Config.net.endpoint = "http://localhost:8080";
+Gateway.config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
   id: string = "";

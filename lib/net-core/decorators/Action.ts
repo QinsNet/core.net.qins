@@ -8,7 +8,7 @@ import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
 import { Gateway } from '../gateway/IGateway';
 
-export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {}) {
+function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {
     Gateway.logger.debug('Action decorating', { methodName: propertyKey });
 

@@ -38,9 +38,7 @@ export class PathNode implements INode {
     }
     this.logger.debug('Node request completed', { endpoint: this.config.net.endpoint });
     if(!this.config.method.isStatic && this.config.method.pact.response.actor){
-      let attributes = undefined;
       if(this.config.method.pact.response.actor){
-        attributes = {} as {[key: string]: string};
         for(const [name,type] of Object.entries(this.config.method.pact.response.actor)){
           if(type.includes(OperateType.Local)){
             const value = this.config.actor.attributes[name].type.deserialize(JSON.stringify(response.actor.properties![name]));

@@ -15,7 +15,7 @@ import { AttributeProperties } from '../config';
 export const METHOD_ENDPOINT_CONFIGS_KEY = '__node_configs__';
 export const ATTRIBUTE_ENDPOINT_CONFIGS_KEY = '__attribute_configs__';
 
-export function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
+function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
   return function (constructor: Function) {
     Gateway.logger.debug('Actor decorating', { className: constructor.name });
 

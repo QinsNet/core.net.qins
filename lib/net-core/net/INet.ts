@@ -1,4 +1,4 @@
-import { CorsProperties } from '../config/Net';
+import { CorsProperties, NetProperties } from '../config/Net';
 import type { RequestProtocol, ResponseProtocol } from '../protocol/Protocol';
 
 export interface IRequestNet {
@@ -8,8 +8,7 @@ export interface IServiceNet {
     service(data: RequestProtocol): Promise<ResponseProtocol>;
     start?(host: string, cors?: CorsProperties): Promise<void>;
     stop?(): Promise<void>;
-    addCors(cors?: CorsProperties): void;
 }
 export interface INet extends IRequestNet, IServiceNet {
-
+    config: NetProperties;
 }

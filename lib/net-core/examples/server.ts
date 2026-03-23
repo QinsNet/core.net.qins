@@ -7,10 +7,10 @@ import { Gateway } from "../node/Gateway";
 import { TypeNode, VoidType } from "../serialize/SerializeFunction";
 import { ParameterNode } from "../decorators/Parameter";
 
-Gateway.config.net.framework = {
+Gateway.Config.net.framework = {
   service: { type: HTTPServiceFramework.Express },
 };
-Gateway.config.net.endpoint = "http://localhost:8080";
+Gateway.Config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
   id: string = "";
@@ -97,17 +97,7 @@ Gateway.on("empty", () => {
 });
 
 async function main() {
-  console.log("Gateway running:", Gateway.running);
-  console.log("Nodes registered:", Gateway.nodeCount);
-
-  console.log("\nStarting gateway...");
   await Gateway.start();
-  console.log("Gateway started, running:", Gateway.running);
-  console.log("Nets running:", Gateway.netPoolSize);
-
-  console.log("\nGateway is now running and waiting...");
-  console.log("Press Ctrl+C to stop.");
-  console.log(User);
 }
 
 main().catch(console.error);

@@ -7,10 +7,10 @@ import { Gateway } from "../node/Gateway";
 import { TypeNode } from "../serialize/SerializeFunction";
 import { ParameterNode } from "../decorators/Parameter";
 
-Gateway.config.net.framework = {
+Gateway.Config.net.framework = {
   service: { type: HTTPServiceFramework.Empty },
 };
-Gateway.config.net.endpoint = "http://localhost:8080";
+Gateway.Config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
   id: string = "";
@@ -84,12 +84,11 @@ export async function main() {
 
   try {
     await user.getUser();
-    console.log("Response:");
-    console.log("  name:", JSON.stringify(user));
+    console.log(JSON.stringify(user));
     const pack = new Pack();
     pack.id = "aaaa";
     await user.addPackage(pack);
-    console.log("  packages:", JSON.stringify(user));
+    console.log(JSON.stringify(user));
   } catch (error) {
     console.error("Error:", error);
   }

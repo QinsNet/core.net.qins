@@ -1,7 +1,7 @@
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IRequestNet } from '../../INet';
-import { Logger } from '../../../util/Logger';
 import { ProtocolBuilder } from '../../../util/Protocol';
+import { Gateway } from '../../../node';
 
 export class FetchRequestNet implements IRequestNet {
   async request(
@@ -9,7 +9,7 @@ export class FetchRequestNet implements IRequestNet {
     options?: object,
     timeout: number = 30000
   ): Promise<ResponseProtocol> {
-    Logger.info('FetchRequestNet: HTTP request starting', {
+    Gateway.Logger.debug('Net sending', {
       node: data.node,
       method: data.method,
       timeout
@@ -17,7 +17,6 @@ export class FetchRequestNet implements IRequestNet {
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      Logger.warn('FetchRequestNet: HTTP request timeout', { node: data.node, timeout });
       controller.abort();
     }, timeout);
 
@@ -33,20 +32,19 @@ export class FetchRequestNet implements IRequestNet {
 
     try {
       const fullUrl = data.node;
-      Logger.debug('FetchRequestNet: HTTP request sending', { url: fullUrl });
       const response = await fetch(fullUrl, requestInit);
       clearTimeout(timeoutId);
 
       if (response.ok) {
         const json = await response.json() as ResponseProtocol;
-        Logger.info('FetchRequestNet: HTTP request succeeded', {
+        Gateway.Logger.debug('Net response received', {
           node: data.node,
           status: response.status
         });
         return json;
       }
 
-      Logger.error('FetchRequestNet: HTTP request failed', {
+      Gateway.Logger.error('Net request failed', {
         node: data.node,
         status: response.status,
         statusText: response.statusText
@@ -57,9 +55,9 @@ export class FetchRequestNet implements IRequestNet {
       });
     } catch (error) {
       clearTimeout(timeoutId);
-      Logger.error('FetchRequestNet: HTTP request error', {
+      Gateway.Logger.error('Net request error', {
         node: data.node,
-        error: error instanceof Error ? error.message + error.stack : String(error)
+        error: error instanceof Error ? error.message : String(error)
       });
       return ProtocolBuilder.buildException(data, {
         code: 500,

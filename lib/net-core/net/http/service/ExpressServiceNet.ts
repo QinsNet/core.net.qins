@@ -2,7 +2,6 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors, { CorsOptions } from 'cors';
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IServiceNet } from '../../INet';
-import { Logger } from '../../../util/Logger';
 import { Gateway } from '../../../node/Gateway';
 import { CorsProperties } from '../../../config/Net';
 
@@ -36,7 +35,7 @@ function createExpressApp(corsConfig: CorsProperties | undefined): Express {
   app.use(express.json());
 
   app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-    Logger.error('ExpressServiceNet: middleware error', {
+    Gateway.Logger.error('Net middleware error', {
       error: err.message,
       path: req.path,
       method: req.method
@@ -59,22 +58,18 @@ async function createHttpServer(
 ): Promise<HttpServer> {
   return new Promise((resolve, reject) => {
     const server = app.listen(port, hostname, () => {
-      Logger.info('ExpressServiceNet: HTTP server listening', { hostname, port });
       resolve({
         app,
         close: () => new Promise<void>((res, rej) => {
           server.close((err) => {
             if (err) rej(err);
-            else {
-              Logger.info('ExpressServiceNet: HTTP server closed', { hostname, port });
-              res();
-            }
+            else res();
           });
         }),
       });
     });
     server.on('error', (err: Error) => {
-      Logger.error('ExpressServiceNet: HTTP server error', { hostname, port, error: err.message });
+      Gateway.Logger.error('Net server error', { hostname, port, error: err.message });
       reject(err);
     });
   });
@@ -95,7 +90,7 @@ export class ExpressServiceNet implements IServiceNet {
       if (cors.credentials) this._cors.credentials = cors.credentials;
       if (cors.maxAge) this._cors.maxAge = cors.maxAge;
     }
-    Logger.debug('ExpressServiceNet: CORS config added', { cors: this._cors });
+    Gateway.Logger.debug('Net CORS config added', { cors: this._cors });
   }
 
   async service(data: RequestProtocol): Promise<ResponseProtocol> {
@@ -114,32 +109,17 @@ export class ExpressServiceNet implements IServiceNet {
     const app = createExpressApp(this._cors);
 
     app.post('*splat', async (req: Request, res: Response) => {
-      const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      Logger.debug('ExpressServiceNet: HTTP request received', {
-        requestId,
-        method: req.method,
-        url: req.url
-      });
-
       try {
         const request: RequestProtocol = req.body;
-        Logger.info('ExpressServiceNet: HTTP request processing', {
-          requestId,
+        Gateway.Logger.debug('Net request received', {
           node: request.node,
           method: request.method
         });
 
         const response = await Gateway.service(request);
         res.status(200).json(response);
-
-        Logger.info('ExpressServiceNet: HTTP response sent', {
-          requestId,
-          node: request.node,
-          hasException: !!response.exception
-        });
       } catch (error) {
-        Logger.error('ExpressServiceNet: HTTP request processing error', {
-          requestId,
+        Gateway.Logger.error('Net request processing error', {
           error: error instanceof Error ? error.message : String(error)
         });
         res.status(400).json({
@@ -151,13 +131,11 @@ export class ExpressServiceNet implements IServiceNet {
       }
     });
 
-    Logger.info('ExpressServiceNet: Starting HTTP server', { hostname, port });
     this._server = await createHttpServer(port, hostname, app);
   }
 
   async stop(): Promise<void> {
     if (!this._server) {
-      Logger.debug('ExpressServiceNet: HTTP server not running, nothing to stop');
       return;
     }
     await this._server.close();

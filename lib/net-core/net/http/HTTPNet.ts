@@ -1,14 +1,16 @@
-import { CorsProperties } from '../../config/Net';
+import { CorsProperties, NetProperties } from '../../config/Net';
 import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import type { INet, IRequestNet, IServiceNet } from '../INet';
 
 export class HTTPNet implements INet {
+  public config: NetProperties;
   private _requestNet: IRequestNet;
   private _serviceNet: IServiceNet;
 
-  constructor(requestNet: IRequestNet, serviceNet: IServiceNet) {
+  constructor(requestNet: IRequestNet, serviceNet: IServiceNet, config: NetProperties) {
+    this.config = config;
     this._requestNet = requestNet;
-    this._serviceNet = serviceNet;
+    this._serviceNet = serviceNet;  
   }
 
   async request(data: RequestProtocol, options?: object, timeout?: number): Promise<ResponseProtocol> {
@@ -25,9 +27,5 @@ export class HTTPNet implements INet {
 
   async stop(): Promise<void> {
     return this._serviceNet.stop?.();
-  }
-
-  addCors(cors?: CorsProperties): void {
-    this._serviceNet.addCors?.(cors);
   }
 }

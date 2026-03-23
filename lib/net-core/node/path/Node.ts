@@ -1,7 +1,7 @@
 import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import { Gateway } from '../Gateway';
 import { ObjectFilter } from './Protocol';
-import { Logger } from '../../util/Logger';
+import log from 'loglevel';
 import { ProtocolBuilder } from '../../util/Protocol';
 import { INode } from '../INode';
 import { OperateType } from '../../config/Action';
@@ -10,30 +10,33 @@ import { NetType } from '../..';
 
 export class PathNode implements INode {
   config: NodeProperties;
+  logger: log.Logger;
   constructor(config: NodeProperties) {
     this.config = config;
-    //确定node
-    const endpoint = this.config.method.net?.endpoint && this.config.method.net?.endpoint 
-    || this.config.actor.net?.endpoint && this.config.actor.net?.endpoint + '/' + this.config.method.name 
-    || Gateway.config.net.endpoint && Gateway.config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
+    const endpoint = this.config.method.net?.endpoint && this.config.method.net?.endpoint
+    || this.config.actor.net?.endpoint && this.config.actor.net?.endpoint + '/' + this.config.method.name
+    || Gateway.Config.net.endpoint && Gateway.Config.net.endpoint + '/' + this.config.actor.name + '/' + this.config.method.name
     || this.config.net.type && this.config.net.host && `${this.config.net.type}://${this.config.net.host}/${this.config.actor.name}/${this.config.method.name}`;
-    //根据最后的Endpoint获取Host和Type
     this.config.net.type = endpoint.split('://')[0] as NetType;
     this.config.net.host = endpoint.split('://')[1].split('/')[0];
+    this.config.name = this.config.actor.name + '/' + this.config.method.name;
     if(!endpoint){
       throw new Error('Node path is not valid');
     }
     this.config.net.endpoint = endpoint;
-    Logger.debug('Node register', this.config as unknown as Record<string, unknown>);
+    this.logger = log.getLogger(this.config.name);
+    this.logger.setLevel((this.config.log.level as log.LogLevelNames) ?? 'debug');
+    this.logger.debug('Node created', { endpoint });
   }
   async request(instance: object, ...args: unknown[]): Promise<unknown> {
+    this.logger.debug('Node request building', { endpoint: this.config.net.endpoint });
     let request = this.buildRequest(instance, args);
     let response = await Gateway.request(request, this);
     if (response.exception) {
+      this.logger.debug('Node request failed', { endpoint: this.config.net.endpoint });
       throw new Error(JSON.stringify(response));
-    } else {
-      Logger.info('Node request completed', { node: this.config.net.endpoint });
     }
+    this.logger.debug('Node request completed', { endpoint: this.config.net.endpoint });
     if(!this.config.method.isStatic && this.config.method.pact.response.actor){
       ObjectFilter(response.actor!.properties,instance, this.config.method.pact.response.actor);
     }
@@ -49,48 +52,47 @@ export class PathNode implements INode {
     }
     return response.result;
   }
-  
+
   async service(request: RequestProtocol): Promise<ResponseProtocol> {
-    Logger.info('Node service starting', { 
-      node: this.config.net.endpoint, 
-      method: this.config.name,
-      hasActor: !!request.actor 
+    this.logger.debug('Node service starting', {
+      endpoint: request.node,
+      hasActor: !!request.actor
     });
-    
+
     try {
       if (!this.config.method.handler) {
-        Logger.error('Node service handler not found', { node: this.config.net.endpoint });
+        this.logger.debug('Node service handler not found', { endpoint: request.node });
         return ProtocolBuilder.buildException(request,{
           code: 404,
           message: 'Not found method',
         });
       }
-      
+
       let instance = this.config.actor.constructor as object;
       if (!this.config.method.isStatic) {
         instance = this.config.actor.type.deserialize(request.actor.properties!) as object;
-        Logger.debug('Instance created from request', { node: this.config.net.endpoint });
+        this.logger.debug('Node service instance created', { endpoint: request.node });
       }
-      
+
       const args = this.extractParams(request);
-      Logger.debug('Parameters extracted', { 
-        node: this.config.net.endpoint, 
-        argCount: args.length 
+      this.logger.debug('Node service parameters extracted', {
+        endpoint: request.node,
+        argCount: args.length
       });
-      
+
       const result = await this.config.method.handler(instance, ...args);
       let response = this.buildResponse(instance, args, result);
-      
-      Logger.info('Node service completed', { 
-        node: this.config.net.endpoint,
-        hasResult: result !== undefined 
+
+      this.logger.debug('Node service completed', {
+        endpoint: request.node,
+        hasResult: result !== undefined
       });
-      
+
       return response;
     } catch (error) {
-      Logger.error('Node service error', { 
-        node: this.config.net.endpoint, 
-        error: error instanceof Error ? error.message + error.stack : String(error) 
+      this.logger.debug('Node service error', {
+        endpoint: request.node,
+        error: error instanceof Error ? error.message : String(error)
       });
       return ProtocolBuilder.buildException(request,{
         code: 500,
@@ -102,7 +104,7 @@ export class PathNode implements INode {
   buildRequest(instance: object, args: unknown[]): RequestProtocol {
     const params = this.packageParams(args);
     const request = {
-      node: this.config.net.endpoint, 
+      node: this.config.net.endpoint,
       actor: {
         type: this.config.actor.name,
         ...(!this.config.method.isStatic && {
@@ -118,7 +120,7 @@ export class PathNode implements INode {
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
     const params = this.packageParams(args);
     const response = {
-      node: this.config.net.endpoint, 
+      node: this.config.net.endpoint,
       actor: {
         type: this.config.actor.name,
         ...(!this.config.method.isStatic && {

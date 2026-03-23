@@ -29,8 +29,8 @@ export function TypeNode<T>(type: Partial<TypeProtocol<T>>|Function|void): TypeP
     if(!type.name){
         throw new Error('Type Name is required');
     }
-    if (Gateway.types.has(type.name)) {
-        return Gateway.types.get(type.name) as TypeProtocol<T>;
+    if (Gateway.Types.has(type.name)) {
+        return Gateway.Types.get(type.name) as TypeProtocol<T>;
     }
     if(!type.serialize || !type.deserialize){
         if(!type.type){
@@ -40,8 +40,8 @@ export function TypeNode<T>(type: Partial<TypeProtocol<T>>|Function|void): TypeP
         type.serialize = trans.serialize;
         type.deserialize = trans.deserialize;
     }
-    Gateway.types.set(type.name, type as TypeProtocol<T>);
-    return Gateway.types.get(type.name) as TypeProtocol<T>;
+    Gateway.Types.set(type.name, type as TypeProtocol<T>);
+    return Gateway.Types.get(type.name) as TypeProtocol<T>;
 }
 
 export function VoidType(): TypeProtocol<void> {

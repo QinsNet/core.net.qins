@@ -15,7 +15,7 @@ export function getOriginFromNode(node: string): string {
   return url.host;
 }
 
-export async function newNetInstance(origin: string, framework: NetProperties['framework']): Promise<INet> {
+export async function newNetInstance(origin: string, framework: NetProperties['framework'], config: NetProperties): Promise<INet> {
   const url = new URL(origin);
   const type = url.protocol.replace(":", "");
   let net: INet | undefined = undefined;
@@ -23,7 +23,7 @@ export async function newNetInstance(origin: string, framework: NetProperties['f
   if (type === "ws") {
     if (framework.ws.type === WSFramework.WS) {
       const { WSOfficialNet } = await import("../net/ws/WSOfficialNet");
-      net = new WSOfficialNet();
+      net = new WSOfficialNet(config);
     } else {
       throw new Error("WS framework not supported");
     }
@@ -50,7 +50,7 @@ export async function newNetInstance(origin: string, framework: NetProperties['f
       throw new Error("HTTP service framework not supported");
     }
 
-    net = new HTTPNet(requestNet, serviceNet);
+    net = new HTTPNet(requestNet, serviceNet, config);
   } else {
     throw new Error(`Unsupported protocol type: ${type}`);
   }

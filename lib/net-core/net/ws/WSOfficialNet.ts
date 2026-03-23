@@ -3,7 +3,7 @@ import { Gateway } from '../../node/Gateway';
 import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import type { INet } from '../INet';
 import { ProtocolBuilder } from '../../util/Protocol';
-import { CorsProperties, NetProperties } from '../../config/Net';
+import { NetProperties } from '../../config/Net';
 
 type WsServer = {
   server: import('http').Server;

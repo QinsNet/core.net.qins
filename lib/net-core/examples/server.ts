@@ -97,6 +97,7 @@ Gateway.on("empty", () => {
 });
 
 async function main() {
+  console.log("Server started.",User.name);
   await Gateway.start();
 }
 

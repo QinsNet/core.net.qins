@@ -2,7 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors, { CorsOptions } from 'cors';
 import type { RequestProtocol, ResponseProtocol } from '../../../protocol/Protocol';
 import type { IServiceNet } from '../../INet';
-import { Gateway } from '../../../node/Gateway';
+import { Gateway } from '../../../gateway/route/Gateway';
 import { CorsProperties } from '../../../config/Net';
 
 type HttpServer = {

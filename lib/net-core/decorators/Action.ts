@@ -6,7 +6,7 @@ import { ParameterProperties } from '../config/Parameter';
 import {  getNodeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
-import { Gateway } from '../node/Gateway';
+import { Gateway } from '../gateway/route/Gateway';
 
 export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {}) {
   return function (target: object, propertyKey: string, descriptor: PropertyDescriptor) {

@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { TypeNode } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
 import { AttributeProperties } from '../config/Attribute';
-import { getAllNodeProperties } from './Actor';
+import { registerAttributeProperties } from './Actor';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
 
@@ -15,9 +15,7 @@ function Attribute(properties: ObjectTB.Partial<AttributeProperties,'deep'> = {}
     const type = Reflect.getMetadata('design:type', target, propertyKey) as ClassConstructor<unknown>;
     defaultProperties.type = defaultProperties.type ?? TypeNode(type as ClassConstructor<unknown>);
     const attribute = deepmerge(defaultProperties as AttributeProperties,properties, { clone: false });
-    Object.values(getAllNodeProperties(target.constructor)).forEach(nodeConfig => {
-      nodeConfig.actor.attributes[attribute.name] = attribute;
-    });
+    registerAttributeProperties(target.constructor, attribute);
   };
 }
 export function AttributeNode(properties: ObjectTB.Partial<AttributeProperties,'deep'> = {}) {

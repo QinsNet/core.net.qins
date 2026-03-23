@@ -8,7 +8,7 @@ import { LoggerProperties } from "./Logger";
 export enum OperateType {
   Local = 'local',
 }
-export type PactType = { [key: string]: PactType } | OperateType;
+export type PactType = { [key: string]: PactType } | OperateType[];
 export interface RequestPact {
   actor?: PactType;
   parameters?: PactType;

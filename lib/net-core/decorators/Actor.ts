@@ -8,10 +8,12 @@ import { TypeNode } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
-import { Gateway } from '../node/Gateway';
+import { Gateway } from '../gateway/route/Gateway';
 import { NetProperties } from '../config/Net';
+import { AttributeProperties } from '../config';
 
 export const METHOD_ENDPOINT_CONFIGS_KEY = '__node_configs__';
+export const ATTRIBUTE_ENDPOINT_CONFIGS_KEY = '__attribute_configs__';
 
 export function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
   return function (constructor: Function) {
@@ -23,7 +25,7 @@ export function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'dee
         nodeProperties.actor.name = constructor.name;
         nodeProperties.actor.type = TypeNode(constructor as ClassConstructor<unknown>);
         nodeProperties.actor = deepmerge(nodeProperties.actor, userActorProperties || {}, { clone: false });
-
+        nodeProperties.actor.attributes = getAllAttributeProperties(constructor);
         Gateway.Logger.debug('Actor config', {
           className: constructor.name,
           actor: {
@@ -74,4 +76,21 @@ export function getNodeProperties(constructor: Function, name: string): NodeProp
     return configs[name];
   }
   return configs[name];
+}
+
+
+export function getAllAttributeProperties(constructor: Function): Record<string, AttributeProperties> {
+  const result = constructor as unknown as Record<string, Record<string, AttributeProperties>>;
+  if(!result[ATTRIBUTE_ENDPOINT_CONFIGS_KEY]){
+    result[ATTRIBUTE_ENDPOINT_CONFIGS_KEY] = {};
+  }
+  return result[ATTRIBUTE_ENDPOINT_CONFIGS_KEY];
+}
+export function registerAttributeProperties(constructor: Function, attributeProperties: AttributeProperties): AttributeProperties {
+  const configs = getAllAttributeProperties(constructor);
+  if(!configs[attributeProperties.name]){
+    configs[attributeProperties.name] = attributeProperties;
+    return configs[attributeProperties.name];
+  }
+  return configs[attributeProperties.name];
 }

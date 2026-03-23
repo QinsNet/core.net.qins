@@ -10,8 +10,7 @@ export class FetchRequestNet implements IRequestNet {
     timeout: number = 30000
   ): Promise<ResponseProtocol> {
     Gateway.Logger.debug('Net sending', {
-      node: data.node,
-      method: data.method,
+      request: JSON.stringify(data),
       timeout
     });
 
@@ -38,14 +37,14 @@ export class FetchRequestNet implements IRequestNet {
       if (response.ok) {
         const json = await response.json() as ResponseProtocol;
         Gateway.Logger.debug('Net response received', {
-          node: data.node,
+          response: JSON.stringify(json),
           status: response.status
         });
         return json;
       }
 
       Gateway.Logger.error('Net request failed', {
-        node: data.node,
+        request: JSON.stringify(data),
         status: response.status,
         statusText: response.statusText
       });
@@ -56,7 +55,7 @@ export class FetchRequestNet implements IRequestNet {
     } catch (error) {
       clearTimeout(timeoutId);
       Gateway.Logger.error('Net request error', {
-        node: data.node,
+        request: JSON.stringify(data),
         error: error instanceof Error ? error.message : String(error)
       });
       return ProtocolBuilder.buildException(data, {

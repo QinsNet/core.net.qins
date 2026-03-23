@@ -3,7 +3,7 @@ import { ActorProperties } from "./Actor";
 import { MethodProperties } from "./Action";
 import { HTTPRequestFramework, HTTPServiceFramework, NetProperties, NetType, WSFramework } from "./Net";
 import { NodeProtocolType, ProtocolProperties } from "./Protocol";
-import { LoggerProperties } from "./Logger";
+import { LoggerLevel, LoggerProperties } from "./Logger";
 
 export class NodeProperties {
     name: string = '';
@@ -48,6 +48,6 @@ export class NodeProperties {
         },
     };
     log: LoggerProperties = {
-        level: "error",
+        level: LoggerLevel.Error,
     }
 }

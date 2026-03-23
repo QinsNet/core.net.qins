@@ -3,9 +3,10 @@ import { AttributeNode, HTTPServiceFramework, OperateType } from "..";
 import { ActorNode } from "../decorators/Actor";
 import { ActionNode } from "../decorators/Action";
 import { Pack } from "./pack";
-import { Gateway } from "../node/Gateway";
+import { Gateway } from "../gateway/route/Gateway";
 import { TypeNode } from "../serialize/SerializeFunction";
 import { ParameterNode } from "../decorators/Parameter";
+import { LoggerLevel } from "../config/Logger";
 
 Gateway.Config.net.framework = {
   service: { type: HTTPServiceFramework.Empty },
@@ -13,11 +14,14 @@ Gateway.Config.net.framework = {
 Gateway.Config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
+  @AttributeNode({ name: "id" })
   id: string = "";
+  @AttributeNode({ name: "name" })
   name: string = "";
+  @AttributeNode({ name: "email" })
   email: string = "";
+  @AttributeNode({ name: "password" })
   password: string = "";
-  
   @AttributeNode({ name: "packages" })
   packages: Pack[] = [];
 
@@ -25,15 +29,15 @@ class User {
     pact: {
       request: {
         actor: {
-          id: OperateType.Local,
-          password: OperateType.Local,
+          id: [OperateType.Local],
+          password: [OperateType.Local],
         },
       },
       response: {
         actor: {
-          name: OperateType.Local,
-          email: OperateType.Local,
-          password: OperateType.Local,
+          name: [OperateType.Local],
+          email: [OperateType.Local],
+          password: [OperateType.Local],
         },
       },
     },
@@ -51,17 +55,17 @@ class User {
         actor: {},
         parameters: {
           pack: {
-            id: OperateType.Local,
+            id: [OperateType.Local],
           },
         },
       },
       response: {
         actor: {
-          packages: OperateType.Local,
+          packages: [OperateType.Local],
         },
         result: {
-          name: OperateType.Local,
-          version: OperateType.Local,
+          name: [OperateType.Local],
+          version: [OperateType.Local],
         },
       },
     },
@@ -78,12 +82,10 @@ class User {
 void User;
 
 export async function main() {
+  void Gateway.start();
   const user = new User();
   user.id = "123";
   user.password = "1234";
-
-  console.log("Sending request with id:", user.id);
-
   try {
     await user.getUser();
     console.log(JSON.stringify(user));
@@ -95,5 +97,5 @@ export async function main() {
     console.error("Error:", error);
   }
 }
-
+Gateway.Config.log.level = LoggerLevel.Debug;
 main();

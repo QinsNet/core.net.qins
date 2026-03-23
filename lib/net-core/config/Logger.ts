@@ -1,3 +1,9 @@
+export enum LoggerLevel {
+    Debug = 'debug',
+    Info = 'info',
+    Warn = 'warn',
+    Error = 'error',
+}
 export interface LoggerProperties {
-    level: string;
+    level: LoggerLevel;
 }

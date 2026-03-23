@@ -1,5 +1,5 @@
 import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
-import { Gateway } from '../Gateway';
+import { Gateway } from '../../gateway/route/Gateway';
 import { ObjectFilter } from './Protocol';
 import log from 'loglevel';
 import { ProtocolBuilder } from '../../util/Protocol';
@@ -38,7 +38,16 @@ export class PathNode implements INode {
     }
     this.logger.debug('Node request completed', { endpoint: this.config.net.endpoint });
     if(!this.config.method.isStatic && this.config.method.pact.response.actor){
-      ObjectFilter(response.actor!.properties,instance, this.config.method.pact.response.actor);
+      let attributes = undefined;
+      if(this.config.method.pact.response.actor){
+        attributes = {} as {[key: string]: string};
+        for(const [name,type] of Object.entries(this.config.method.pact.response.actor)){
+          if(type.includes(OperateType.Local)){
+            const value = this.config.actor.attributes[name].type.deserialize(JSON.stringify(response.actor.properties![name]));
+            (instance as any)[name] = ObjectFilter(value,(instance as any)[name], type);
+          }
+        }
+      }
     }
     if(this.config.method.pact.response.parameters){
       const targets = this.packageParams(args, false)
@@ -47,7 +56,7 @@ export class PathNode implements INode {
           if(!target){
             continue;
           }
-          ObjectFilter(request.parameters[name].properties, target, value as Record<string, unknown>|OperateType);
+          ObjectFilter(request.parameters[name].properties, target, (value as Record<string, unknown> | OperateType[]));
       }
     }
     return response.result;
@@ -103,12 +112,24 @@ export class PathNode implements INode {
 
   buildRequest(instance: object, args: unknown[]): RequestProtocol {
     const params = this.packageParams(args);
+    let attributes = undefined;
+    if(this.config.method.pact.request.actor){
+      attributes = {} as {[key: string]: string};
+      for(const [name,type] of Object.entries(this.config.method.pact.request.actor)){
+        if(type.includes(OperateType.Local)){
+          if(!this.config.actor.attributes[name]){
+            throw new Error('Attribute not found');
+          }
+          attributes[name] = JSON.parse(this.config.actor.attributes[name].type.serialize((instance as any)[name]));
+        }
+      }
+    }
     const request = {
       node: this.config.net.endpoint,
       actor: {
         type: this.config.actor.name,
-        ...(!this.config.method.isStatic && {
-          properties: JSON.parse(this.config.actor.type.serialize(instance))
+        ...(!this.config.method.isStatic && attributes && {
+          properties: attributes
         })
       },
       method: this.config.name,
@@ -119,12 +140,21 @@ export class PathNode implements INode {
 
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
     const params = this.packageParams(args);
+    let attributes = undefined;
+    if(this.config.method.pact.response.actor){
+      attributes = {} as {[key: string]: string};
+      for(const [name,type] of Object.entries(this.config.method.pact.response.actor)){
+        if(type.includes(OperateType.Local)){
+          attributes[name] = JSON.parse(this.config.actor.attributes[name].type.serialize((instance as any)[name]));
+        }
+      }
+    }
     const response = {
       node: this.config.net.endpoint,
       actor: {
         type: this.config.actor.name,
-        ...(!this.config.method.isStatic && {
-          properties: JSON.parse(this.config.actor.type.serialize(instance))
+        ...(!this.config.method.isStatic && attributes && {
+          properties: attributes
         })
       },
       parameters: params,

@@ -9,7 +9,7 @@ export class PathRequestProtocol implements RequestProtocol {
         public method: string = '',
         public actor: {
             type: string,
-            properties?: unknown
+            properties?: {[key: string]: any}
         },
         public parameters: {[key: string]: ParameterProtocol},
         path: RequestPact
@@ -26,12 +26,12 @@ export class PathResponseProtocol implements ResponseProtocol {
         public node: string = '',
         public actor: {
           type: string,
-          properties?: unknown
+          properties?: {[key: string]: any}
         },
         public parameters: {[key: string]: ParameterProtocol},
         public result: {
           type: string,
-          properties?: unknown
+          properties?: {[key: string]: any}
         },
         path: ResponsePact,
         public exception?: ExceptionProtocol
@@ -51,7 +51,7 @@ function filterInstance(protocol: RequestProtocol|ResponseProtocol,path: Request
   if(!path.actor){
     return
   }
-  protocol.actor!.properties = ObjectFilter(properties,{},path.actor);
+  protocol.actor!.properties = ObjectFilter(properties,{},path.actor) as {[key: string]: unknown};
 }
 function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: RequestPact|ResponsePact){
   const sourceProperties = {} as {[key: string]: unknown};
@@ -65,7 +65,7 @@ function filterParameters(protocol: RequestProtocol|ResponseProtocol,path: Reque
       if(!properties){
         throw new Error(`Parameter ${name} not found`);
       }
-      protocol.parameters[name].properties = ObjectFilter(properties,{},parameter as {[key: string]: unknown});
+      protocol.parameters[name].properties = ObjectFilter(properties,{},parameter as {[key: string]: unknown}) as {[key: string]: unknown};
     }
   }
 }
@@ -73,11 +73,11 @@ function filterResult(protocol: ResponseProtocol,path: ResponsePact){
   const properties = protocol.result?.properties;
   delete protocol.result?.properties;
   if(path.result){
-    protocol.result.properties = ObjectFilter(properties,{},path.result);
+    protocol.result.properties = ObjectFilter(properties,{},path.result) as {[key: string]: unknown};
   }
 }
-export function ObjectFilter(source: unknown, target: unknown, paths: Record<string, unknown> | OperateType): unknown {
-  if(paths === OperateType.Local){
+export function ObjectFilter(source: unknown, target: unknown, paths: Record<string, unknown> | OperateType[]): {[key: string]: unknown}|unknown {
+  if(paths instanceof Array && paths.includes(OperateType.Local)){
     if(typeof source !== 'object'){
       return source;
     }
@@ -93,7 +93,7 @@ export function ObjectFilter(source: unknown, target: unknown, paths: Record<str
     if (!(key in sourceMap)) continue;
     
     const sourceValue = sourceMap[key];
-    const pathValue = paths[key];
+    const pathValue = (paths as Record<string, unknown>)[key];
     
     if (sourceValue === undefined) continue;
     
@@ -101,8 +101,8 @@ export function ObjectFilter(source: unknown, target: unknown, paths: Record<str
     
     if (hasNestedPath) {
       targetMap[key] = {};
-      ObjectFilter(sourceValue, targetMap[key], pathValue as Record<string, unknown> | OperateType);
-    } else if (pathValue === OperateType.Local) {
+      targetMap[key] = ObjectFilter(sourceValue, targetMap[key], (pathValue as Record<string, unknown> | OperateType[]));
+    } else if (pathValue instanceof Array && pathValue.includes(OperateType.Local)) {
       targetMap[key] = sourceValue;
     }
   }

@@ -1,3 +1,3 @@
 export * from './INode';
-export * from './Gateway'
+export * from '../gateway/route/Gateway'
 

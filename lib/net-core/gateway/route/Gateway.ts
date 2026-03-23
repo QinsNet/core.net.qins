@@ -1,11 +1,11 @@
 import 'reflect-metadata';
-import type { INet } from '../net/INet';
-import type { RequestProtocol, ResponseProtocol, TypeProtocol } from '../protocol/Protocol';
-import type { INode } from './INode';
-import { ProtocolBuilder } from '../util/Protocol';
-import { newNetInstance } from '../util/Netutil';
-import { GatewayConfig } from '../config/Gateway';
-import log from 'loglevel';
+import type { INet } from '../../net/INet';
+import type { RequestProtocol, ResponseProtocol, TypeProtocol } from '../../protocol/Protocol';
+import type { INode } from '../../node/INode';
+import { ProtocolBuilder } from '../../util/Protocol';
+import { newNetInstance } from '../../util/Netutil';
+import { GatewayConfig } from '../../config/Gateway';
+import { Logger } from '../../util/Logger';
 
 export type NetEventType = 'register' | 'unregister' | 'empty';
 export type NetEventHandler = (net: INet, origin: string) => void | Promise<void>;
@@ -18,7 +18,7 @@ export class Gateway {
   private static _resolveEmpty: (() => void) | null = null;
   public static Config: GatewayConfig = new GatewayConfig();
   public static Types: Map<string, TypeProtocol<any>> = new Map();
-  public static Logger = log.getLogger('gateway');
+  public static Logger = new Logger('gateway');
 
   static get running(): boolean {
     return this._running;
@@ -73,6 +73,7 @@ export class Gateway {
   }
 
   static async start(): Promise<void> {
+    if(Gateway.Config.log.level)Gateway.Logger.setLogLevel(Gateway.Config.log.level);
     if (this._running) {
       return;
     }
@@ -198,4 +199,3 @@ export class Gateway {
     return this._nodeRegistry.get(endpoint);
   }
 }
-Gateway.Logger.setLevel(Gateway.Config.log.level as log.LogLevelNames);

@@ -8,7 +8,7 @@ export interface ParameterProtocol {
   name: string;
   type: string;
   index: number;
-  properties?: unknown
+  properties?: {[key: string]: any}
 }
 export interface ExceptionProtocol {
   code: number;
@@ -19,7 +19,7 @@ export interface RequestProtocol {
   node: string;
   actor: {
     type: string,
-    properties?: unknown
+    properties?: {[key: string]: any}
   };
   method: string;
   parameters: {[key: string]: ParameterProtocol};
@@ -30,11 +30,11 @@ export interface ResponseProtocol {
   node: string;
   result: {
     type: string,
-    properties?: unknown
+    properties?: {[key: string]: any}
   };
   actor: {
     type: string,
-    properties?: unknown
+    properties?: {[key: string]: any}
   };
   parameters: {[key: string]: ParameterProtocol};
   exception?: ExceptionProtocol;

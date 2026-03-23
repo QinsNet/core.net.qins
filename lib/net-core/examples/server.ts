@@ -1,9 +1,9 @@
 import "reflect-metadata";
-import { HTTPServiceFramework, OperateType } from "..";
+import { AttributeNode, HTTPServiceFramework, OperateType } from "..";
 import { Pack } from "./pack";
 import { ActionNode } from "../decorators/Action";
 import { ActorNode } from "../decorators/Actor";
-import { Gateway } from "../node/Gateway";
+import { Gateway } from "../gateway/route/Gateway";
 import { TypeNode, VoidType } from "../serialize/SerializeFunction";
 import { ParameterNode } from "../decorators/Parameter";
 
@@ -13,25 +13,30 @@ Gateway.Config.net.framework = {
 Gateway.Config.net.endpoint = "http://localhost:8080";
 @ActorNode()
 class User {
+  @AttributeNode({ name: "id" })
   id: string = "";
+  @AttributeNode({ name: "name" })
   name: string = "";
+  @AttributeNode({ name: "email" })
   email: string = "";
+  @AttributeNode({ name: "password" })
   password: string = "";
+  @AttributeNode({ name: "packages" })
   packages: Pack[] = [];
 
   @ActionNode({
     pact: {
       request: {
         actor: {
-          id: OperateType.Local,
-          password: OperateType.Local,
+          id: [OperateType.Local],
+          password: [OperateType.Local],
         }
       },
       response: {
         actor: {
-          name: OperateType.Local,
-          email: OperateType.Local,
-          password: OperateType.Local,
+          name: [OperateType.Local],
+          email: [OperateType.Local],
+          password: [OperateType.Local],
         }
       }
     },
@@ -54,17 +59,17 @@ class User {
         actor: {},
         parameters: {
           pack: {
-            id: OperateType.Local,
+            id: [OperateType.Local],
           },
         },
       },
       response: {
         actor: {
-          packages: OperateType.Local,
+          packages: [OperateType.Local],
         },
         result: {
-          name: OperateType.Local,
-          version: OperateType.Local,
+          name: [OperateType.Local],
+          version: [OperateType.Local],
         },
       },
     },

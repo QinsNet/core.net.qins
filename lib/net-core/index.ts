@@ -4,4 +4,5 @@ export * from './node'
 export * from './net'
 export * from './decorators'
 export * from './config'
+export * from './gateway'
 

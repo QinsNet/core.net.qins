@@ -6,4 +6,5 @@ export * from './Protocol'
 export * from './Node'
 export * from './Gateway'
 export * from './Parameter'
+export * from './Logger'
 

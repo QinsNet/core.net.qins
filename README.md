@@ -1,7 +1,11 @@
 # Qins Net
+
 网络框架，用于构建基于Qins的网络应用。
+
 # 配置要求
+
 在`tsconfig.json`中开启反射功能
+
 ```json
 {
   "compilerOptions": {
@@ -11,8 +15,11 @@
   }
 }
 ```
+
 # 使用示例
+
 ## Client
+
 ```typescript
 import 'reflect-metadata';
 import {  HTTPServiceFramework, OperateType } from '..';
@@ -113,7 +120,9 @@ export async function main() {
 
 main();
 ```
+
 ## Server
+
 ```typescript
 import "reflect-metadata";
 
@@ -218,4 +227,18 @@ async function main() {
 
 main().catch(console.error);
 
+```
+## 序列化与反序列化
+```typescript
+import { Pack } from "./pack";
+
+export function serializePack(value: Pack[]) {
+  return JSON.stringify(value);
+}
+export function deserializePack(value: string) {
+  const json = JSON.parse(value) as Object[];
+  return json.map((item) => {
+    return Object.assign(new Pack(), item);
+  }) as Pack[];
+}
 ```

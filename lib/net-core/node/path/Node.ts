@@ -34,12 +34,12 @@ export class PathNode implements INode {
     } else {
       Logger.info('Node request completed', { node: this.config.net.endpoint });
     }
-    if(!this.config.method.isStatic && this.config.method.response.actor){
-      ObjectFilter(response.actor!.properties,instance, this.config.method.response.actor);
+    if(!this.config.method.isStatic && this.config.method.pact.response.actor){
+      ObjectFilter(response.actor!.properties,instance, this.config.method.pact.response.actor);
     }
-    if(this.config.method.response.parameters){
+    if(this.config.method.pact.response.parameters){
       const targets = this.packageParams(args, false)
-      for(const [name,value] of Object.entries(this.config.method.response.parameters)){
+      for(const [name,value] of Object.entries(this.config.method.pact.response.parameters)){
           const target = targets[name].properties;
           if(!target){
             continue;
@@ -112,7 +112,7 @@ export class PathNode implements INode {
       method: this.config.name,
       parameters: params,
     };
-    return ProtocolBuilder.buildPathRequest(request, this.config.method.request);
+    return ProtocolBuilder.buildPathRequest(request, this.config.method.pact.request);
   }
 
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
@@ -133,7 +133,7 @@ export class PathNode implements INode {
           })
         },
     };
-    return ProtocolBuilder.buildPathResponse(response, this.config.method.response);
+    return ProtocolBuilder.buildPathResponse(response, this.config.method.pact.response);
   }
 
   private extractParams(request: RequestProtocol): unknown[] {

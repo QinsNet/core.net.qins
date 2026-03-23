@@ -1,21 +1,21 @@
 {
-  "name": "qins-net",
-  "version": "0.1.9",
+  "name": "@qinsteam/net-core",
+  "version": "0.2.4",
   "type": "module",
   "author": "EtherealMz",
   "email": "EtherealMz@outlook.com",
-  "description": "QinsNet核心网络框架",
+  "description": "QinsNet核心网络框架核心",
   "files": [
     "dist",
     "index.d.ts"
   ],
-  "main": "./dist/qins-net.js",
-  "types": "./dist/lib/qins-net/qins-net.d.ts",
+  "main": "./dist/net-core.js",
+  "types": "./dist/lib/net-core/net-core.d.ts",
   "exports": {
-    "./net": {
-      "types": "./dist/lib/qins-net/qins-net.d.ts",
-      "import": "./dist/qins-net.js",
-      "require": "./dist/qins-net.cjs"
+    ".": {
+      "types": "./dist/lib/net-core/net-core.d.ts",
+      "import": "./dist/net-core.js",
+      "require": "./dist/net-core.cjs"
     }
   },
   "scripts": {
@@ -36,7 +36,6 @@
     "deepmerge": "^4.3.1",
     "express": "^5.2.1",
     "loglevel": "^1.1.0",
-    "qins-net": "^0.1.4",
     "reflect-metadata": "^0.2.2",
     "ts-toolbelt": "^9.6.0",
     "vite-plugin-dts": "^4.5.4",
@@ -53,6 +52,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/QinsNet/core.net.qins.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   },
   "keywords": [
     "QinsNet核心网络框架"

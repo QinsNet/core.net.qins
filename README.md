@@ -1,13 +1,29 @@
+# Qins Net
+网络框架，用于构建基于Qins的网络应用。
+# 配置要求
+在`tsconfig.json`中开启反射功能
+```json
+{
+  "compilerOptions": {
+    /* Decorator support */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+  }
+}
+```
+# 使用示例
+## Client
+```typescript
 import 'reflect-metadata';
-import { HTTPServiceFramework, OperateType } from '..';
-import { Pack } from './pack';
-import { ActionNode } from '../decorators/Action';
+import {  HTTPServiceFramework, OperateType } from '..';
 import { ActorNode } from '../decorators/Actor';
+import { Action } from '../decorators/Action';
+import { Pack } from './pack';
 import { Gateway } from '../node/Gateway';
 import { registerClassTransformerTypeProtocol, registerVoidTypeProtocol } from '../serialize/SerializeFunction';
 import { ParameterNode } from '../decorators/Parameter';
 
-Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Express } }
+Gateway.config.net.framework = { service: { type: HTTPServiceFramework.Empty } }
 Gateway.config.net.endpoint = 'http://localhost:8080';
 @ActorNode()
 class User {
@@ -17,7 +33,7 @@ class User {
   password: string = '';
   packages: Pack[] = [];
 
-  @ActionNode({
+  @Action({
     request: {
       actor: {
         id: OperateType.Local,
@@ -36,16 +52,11 @@ class User {
     },
   })
   async getUser(): Promise<void> {
-    if(this.id == '123' && this.password == '1234'){
-      this.name = 'Ether';
-      this.email = 'Ether@example.com';
-      this.password = '';
-    }
     return Promise.resolve();
   }
 
 
-    @ActionNode({
+  @Action({
       request: {
         actor: {},
         parameters: {
@@ -67,10 +78,9 @@ class User {
         type: registerClassTransformerTypeProtocol(Pack),
       },
     })
-    async addPackage(@ParameterNode({name: 'pack'}) pack: Pack): Promise<Pack> {
-      if(pack.id == 'aaaa'){
+    async addPackage(@ParameterNode({name: 'pack'})  pack: Pack): Promise<Pack> {
+      if(this.id == 'aaaa'){
         this.packages.push(pack);
-        pack.id = 'bbbb';
         pack.version = '1.0.0';
         pack.name = 'test';
         pack.description = 'test package';
@@ -79,30 +89,27 @@ class User {
     }
 }
 
-Gateway.on('register', (_net, origin) => {
-  console.log(`Net registered: ${origin}`);
-});
+void User;
 
-Gateway.on('unregister', (_net, origin) => {
-  console.log(`Net unregistered: ${origin}`);
-});
+export async function main() {
+  const user = new User();
+  user.id = '123';
+  user.password = '1234';
 
-Gateway.on('empty', () => {
-  console.log('All nets stopped.');
-});
+  console.log('Sending request with id:', user.id);
 
-async function main() {
-  console.log('Gateway running:', Gateway.running);
-  console.log('Nodes registered:', Gateway.nodeCount);
-  
-  console.log('\nStarting gateway...');
-  await Gateway.start();
-  console.log('Gateway started, running:', Gateway.running);
-  console.log('Nets running:', Gateway.netPoolSize);  
-  
-  console.log('\nGateway is now running and waiting...');
-  console.log('Press Ctrl+C to stop.');
-  console.log(User)
+  try {
+    await user.getUser();
+    console.log('Response:');
+    console.log('  name:', JSON.stringify(user));
+    const pack = new Pack()
+    pack.id = 'aaaa';
+    await user.addPackage(pack);
+    console.log('  packages:', JSON.stringify(user));
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
-main().catch(console.error);
+main();
+```

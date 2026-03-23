@@ -4,9 +4,9 @@ export default defineConfig({
   build: {
     lib: {
       formats: ['es', 'cjs'],
-      entry: './lib/qins-net/index.ts',
+      entry: './lib/net-core/index.ts',
       name: 'QinsNet',
-      fileName: 'qins-net',
+      fileName: 'net-core',
     },
     rollupOptions: {
       external: ['reflect-metadata','express'],

@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { path2json } from '../node/path/Protocol';
-import { registerClassTransformerTypeProtocol,  } from '../serialize/SerializeFunction';
-import { ClassConstructor } from 'class-transformer';
+import { TypeNode,  } from '../serialize/SerializeFunction';
 import { MethodProperties, RequestPact, ResponsePact } from '../config/Action';
 import { ParameterProperties } from '../config/Parameter';
 import {  getNodeProperties } from './Actor';
@@ -38,12 +37,12 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
   };
 
   function mappingParameter(target: object, propertyKey: string,config: Partial<MethodProperties>) {
-    const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as ClassConstructor<unknown>[];
+    const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as Function[];
     if(!config.parameters) config.parameters = {};
     if (paramTypes && paramTypes.length > 0) {
       for (let i = 0; i < paramTypes.length; i++) {
         if(!Object.values(config.parameters).find(p=>p.index===i)){
-          const param = { name: `param${i}`, type: registerClassTransformerTypeProtocol(paramTypes[i]), index: i } as ParameterProperties;
+          const param = { name: `param${i}`, type: TypeNode(paramTypes[i]), index: i } as ParameterProperties;
           config.parameters[param.name] = param;
         }
       }
@@ -51,14 +50,15 @@ export function Action(properties: ObjectTB.Partial<MethodProperties,'deep'> = {
   }
 }
 
-export function ActionNode(properties: ObjectTB.Partial<MethodProperties | { request?: string, response?: string },'deep'> = {}) {
+export function ActionNode(properties: ObjectTB.Partial<MethodProperties | { pact: { request?: string, response?: string } },'deep'> = {}) {
+  if(!properties.pact) properties.pact = {};
   //request
-  if (typeof properties.request === 'string') {
-    properties.request = path2json(properties.request) as RequestPact;
+  if (typeof properties.pact.request === 'string') {
+    properties.pact.request = path2json(properties.pact.request) as RequestPact;
   }
   //response
-  if (typeof properties.response === 'string') {
-    properties.response = path2json(properties.response) as ResponsePact;
+  if (typeof properties.pact.response === 'string') {
+    properties.pact.response = path2json(properties.pact.response) as ResponsePact;
   }
   return Action(properties as ObjectTB.Partial<MethodProperties,'deep'>);
 }

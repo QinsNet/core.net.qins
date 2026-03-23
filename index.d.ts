@@ -1,1 +1,1 @@
-export * from './lib/qins-net/index'
+export * from './lib/net-core/index'

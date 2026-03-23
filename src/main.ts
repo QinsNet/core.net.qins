@@ -1,3 +1,3 @@
 import 'reflect-metadata';
 
-export * from '../lib/qins-net';
+export * from '../lib/net-core';

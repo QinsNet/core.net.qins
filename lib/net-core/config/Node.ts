@@ -1,8 +1,9 @@
-import { registerVoidTypeProtocol } from "../serialize/SerializeFunction";
+import { VoidType } from "../serialize/SerializeFunction";
 import { ActorProperties } from "./Actor";
 import { MethodProperties } from "./Action";
 import { HTTPRequestFramework, HTTPServiceFramework, NetProperties, NetType, WSFramework } from "./Net";
-import { NodeType, ProtocolProperties } from "./Protocol";
+import { NodeProtocolType, ProtocolProperties } from "./Protocol";
+import { LoggerProperties } from "./Logger";
 
 export class NodeProperties {
     name: string = '';
@@ -27,21 +28,26 @@ export class NodeProperties {
         type: NetType.HTTP,
         timeout: 0,
     };
-    protocol: ProtocolProperties = { type: NodeType.Path };
+    protocol: ProtocolProperties = { type: NodeProtocolType.Path };
     actor: ActorProperties = {
         name: '',
-        type: registerVoidTypeProtocol(),
+        type: VoidType(),
         attributes: {},
     };
     method: MethodProperties = {
         name: '',
-        request: {},
-        response: {},
+        pact: {
+            request: {},
+            response: {},
+        },
         handler: () => Promise.resolve(),
         isStatic: false,
         parameters: {},
         result: {
-            type: registerVoidTypeProtocol(),
+            type: VoidType(),
         },
     };
+    log: LoggerProperties = {
+        level: "info",
+    }
 }

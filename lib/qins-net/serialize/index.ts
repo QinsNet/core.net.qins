@@ -1,1 +1,0 @@
-export { ClassTransformerTypeProtocol, registerClassTransformerTypeProtocol, registerTypeProtocol, registerVoidTypeProtocol } from './SerializeFunction';

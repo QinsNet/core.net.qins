@@ -4,8 +4,8 @@ import { Logger } from '../util/Logger';
 import { PathNode } from '../node/path/Node';
 import { ActorProperties } from '../config/Actor';
 import { NodeProperties } from '../config/Node';
-import { NodeType, ProtocolProperties } from '../config/Protocol';
-import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunction';
+import { NodeProtocolType, ProtocolProperties } from '../config/Protocol';
+import { TypeNode } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
@@ -22,12 +22,12 @@ export function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'dee
     if (allNodeProperties) {
       for (const nodeProperties of Object.values(allNodeProperties)) {
         nodeProperties.actor.name = constructor.name;
-        nodeProperties.actor.type = registerClassTransformerTypeProtocol(constructor as ClassConstructor<unknown>);
+        nodeProperties.actor.type = TypeNode(constructor as ClassConstructor<unknown>);
         nodeProperties.actor = deepmerge(nodeProperties.actor, userActorProperties || {}, { clone: false });
         //合并配置
         nodeProperties.net = deepmerge.all([nodeProperties.net, Gateway.config.net || {},nodeProperties.actor.net || {},nodeProperties.method.net || {}], { clone: false }) as NetProperties;
         nodeProperties.protocol = deepmerge.all([nodeProperties.protocol, Gateway.config.protocol || {},nodeProperties.actor.protocol || {},nodeProperties.method.protocol || {}], { clone: false }) as ProtocolProperties;
-        if(nodeProperties.protocol.type === NodeType.Path){
+        if(nodeProperties.protocol.type === NodeProtocolType.Path){
           const node = new PathNode(nodeProperties);
           Gateway.registerNode(node);
         } else {

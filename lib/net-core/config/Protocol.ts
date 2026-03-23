@@ -1,6 +1,6 @@
-export enum NodeType {
+export enum NodeProtocolType {
   Path = 'path',
 }
 export interface ProtocolProperties {
-  type: NodeType;
+  type: NodeProtocolType;
 }

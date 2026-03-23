@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { registerClassTransformerTypeProtocol } from '../serialize/SerializeFunction';
+import { TypeNode } from '../serialize/SerializeFunction';
 import { ClassConstructor } from 'class-transformer';
 import { AttributeProperties } from '../config/Attribute';
 import { getNodeProperties } from './Actor';
@@ -13,7 +13,7 @@ function Attribute(properties: ObjectTB.Partial<AttributeProperties,'deep'> = {}
     defaultProperties.name = defaultProperties.name ?? propertyKey;
     //type
     const type = Reflect.getMetadata('design:type', target, propertyKey) as ClassConstructor<unknown>;
-    defaultProperties.type = defaultProperties.type ?? registerClassTransformerTypeProtocol(type as ClassConstructor<unknown>);
+    defaultProperties.type = defaultProperties.type ?? TypeNode(type as ClassConstructor<unknown>);
     const nodeConfig = getNodeProperties(target.constructor, propertyKey);
     nodeConfig.actor.attributes[defaultProperties.name] = deepmerge(defaultProperties as AttributeProperties,properties, { clone: false });
   };

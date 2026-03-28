@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import type { INet } from '../../net/INet';
-import type { RequestProtocol, ResponseProtocol, TypeProtocol } from '../../protocol/Protocol';
+import type { RequestProtocol, ResponseProtocol, MetaType } from '../../protocol/Protocol';
 import type { INode } from '../../node/INode';
 import { ProtocolBuilder } from '../../util/Protocol';
 import { newNetInstance } from '../../util/Netutil';
@@ -15,7 +15,7 @@ export class RouteGateway implements IGateway {
   private _eventHandlers: Map<NetEventType, Set<NetEventHandler>> = new Map();
   private _resolveEmpty: (() => void) | null = null;
   public config: GatewayConfig = new GatewayConfig();
-  public types: Map<string, TypeProtocol<any>> = new Map();
+  public types: Map<string, MetaType<any>> = new Map();
   public logger = new Logger('gateway');
 
   get running(): boolean {

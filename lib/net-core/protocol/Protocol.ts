@@ -1,14 +1,17 @@
-export interface TypeProtocol<T> {
-    name: string;
-    type: Function;
-    serialize: (instance: T) => string;
-    deserialize: (serialized: string|Object,instance?: T) => T;  
-}
-export interface ParameterProtocol {
-  name: string;
+export interface MetaProtocol {
   type: string;
-  index: number;
-  properties?: {[key: string]: any}
+  attributes?: {[key: string]: MetaProtocol}
+}
+export interface ReactionProtocol{
+  type: string,
+  input: {
+    attributes: {[key: string]: MetaProtocol}
+    parameters: {[key: string]: MetaProtocol}
+  }
+  output: {
+    attributes: {[key: string]: MetaProtocol}
+    parameters: {[key: string]: MetaProtocol}
+  }
 }
 export interface ExceptionProtocol {
   code: number;
@@ -17,26 +20,35 @@ export interface ExceptionProtocol {
 export interface RequestProtocol {
   version?: string;
   node: string;
-  actor: {
-    type: string,
-    properties?: {[key: string]: any}
-  };
+  reaction: ReactionProtocol;
   method: string;
-  parameters: {[key: string]: ParameterProtocol};
 }
 
 export interface ResponseProtocol {
   version?: string;
   node: string;
-  result: {
-    type: string,
-    properties?: {[key: string]: any}
-  };
-  actor: {
-    type: string,
-    properties?: {[key: string]: any}
-  };
-  parameters: {[key: string]: ParameterProtocol};
+  reaction: ReactionProtocol;
   exception?: ExceptionProtocol;
 }
 
+export interface MetaType<T> {
+    name: string;
+    instance: Function;
+    serialize: (instance: T) => string;
+    deserialize: (serialized: string|Object,instance?: T) => T;
+}
+export interface MetaProtocolType {
+  type: MetaType<unknown>;
+  attributes?: {[key: string]: MetaProtocolType}
+}
+export interface ReactionProtocolType{
+  type: MetaType<unknown>;
+  input?: {
+    attributes?: {[key: string]: MetaProtocolType}
+    parameters?: {[key: string]: MetaProtocolType}
+  }
+  output?: {
+    attributes?: {[key: string]: MetaProtocolType}
+    parameters?: {[key: string]: MetaProtocolType}
+  }
+}

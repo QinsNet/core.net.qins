@@ -25,18 +25,18 @@ class User {
   packages: Pack[] = [];
 
   @ActionNode({
-    pact: {
+    view: {
       request: {
         actor: {
-          id: [OperateType.Local],
-          password: [OperateType.Local],
+          id: [OperateType.Request],
+          password: [OperateType.Request],
         }
       },
       response: {
         actor: {
-          name: [OperateType.Local],
-          email: [OperateType.Local],
-          password: [OperateType.Local],
+          name: [OperateType.Request],
+          email: [OperateType.Request],
+          password: [OperateType.Request],
         }
       }
     },
@@ -54,22 +54,22 @@ class User {
   }
 
   @ActionNode({
-    pact: {
+    view: {
       request: {
         actor: {},
         parameters: {
           pack: {
-            id: [OperateType.Local],
+            id: [OperateType.Request],
           },
         },
       },
       response: {
         actor: {
-          packages: [OperateType.Local],
+          packages: [OperateType.Request],
         },
         result: {
-          name: [OperateType.Local],
-          version: [OperateType.Local],
+          name: [OperateType.Request],
+          version: [OperateType.Request],
         },
       },
     },

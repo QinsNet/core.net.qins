@@ -1,6 +1,6 @@
-import { TypeProtocol } from "../protocol/Protocol";
+import { MetaType } from "../protocol/Protocol";
 
 export interface AttributeProperties {
   name: string;
-  type: TypeProtocol<unknown>;
+  type: MetaType<unknown>;
 }

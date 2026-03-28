@@ -1,5 +1,5 @@
 import { GatewayConfig } from "../config";
-import { TypeProtocol } from "../protocol";
+import { MetaType } from "../protocol";
 import { Logger } from "../util/Logger";
 import type { INet } from "../net/INet";
 import type { INode } from "../node/INode";
@@ -12,7 +12,7 @@ export type NetEventHandler = (net: INet, origin: string) => void | Promise<void
 export interface IGateway {
     config: GatewayConfig;
     logger: Logger;
-    types: Map<string, TypeProtocol<any>>;
+    types: Map<string, MetaType<any>>;
     on(event: NetEventType, handler: NetEventHandler): void;
     off(event: NetEventType, handler: NetEventHandler): void;
     start(): Promise<void>;

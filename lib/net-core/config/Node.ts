@@ -1,9 +1,10 @@
-import { VoidType } from "../serialize/SerializeFunction";
 import { ActorProperties } from "./Actor";
 import { MethodProperties } from "./Action";
 import { HTTPRequestFramework, HTTPServiceFramework, NetProperties, NetType, WSFramework } from "./Net";
 import { NodeProtocolType, ProtocolProperties } from "./Protocol";
 import { LoggerLevel, LoggerProperties } from "./Logger";
+import { ReactionProtocolType } from "../protocol";
+import { TypeNode } from "../serialize";
 
 export class NodeProperties {
     name: string = '';
@@ -31,23 +32,17 @@ export class NodeProperties {
     protocol: ProtocolProperties = { type: NodeProtocolType.Path };
     actor: ActorProperties = {
         name: '',
-        type: VoidType(),
-        attributes: {},
     };
     method: MethodProperties = {
         name: '',
-        pact: {
-            request: {},
-            response: {},
-        },
         handler: () => Promise.resolve(),
         isStatic: false,
-        parameters: {},
-        result: {
-            type: VoidType(),
-        },
+    };
+    reaction: ReactionProtocolType = {
+        type: TypeNode(void 0),
     };
     log: LoggerProperties = {
         level: LoggerLevel.Error,
     }
+    description: Record<string, string> = {};
 }

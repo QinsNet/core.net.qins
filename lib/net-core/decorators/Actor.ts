@@ -1,52 +1,28 @@
 import 'reflect-metadata';
 
 import { PathNode } from '../node/path/Node';
-import { ActorProperties } from '../config/Actor';
 import { NodeProperties } from '../config/Node';
 import { NodeProtocolType, ProtocolProperties } from '../config/Protocol';
-import { TypeNode } from '../serialize/SerializeFunction';
-import { ClassConstructor } from 'class-transformer';
 import deepmerge from 'deepmerge';
 import { Object as ObjectTB } from "ts-toolbelt"
 import { Gateway } from '../gateway/IGateway';
 import { NetProperties } from '../config/Net';
-import { AttributeProperties } from '../config';
+import { ActorProperties } from '../config';
 
 export const METHOD_ENDPOINT_CONFIGS_KEY = '__node_configs__';
 export const ATTRIBUTE_ENDPOINT_CONFIGS_KEY = '__attribute_configs__';
 
-function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
+export function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
   return function (constructor: Function) {
     Gateway.logger.debug('Actor decorating', { className: constructor.name });
 
     const allNodeProperties = getAllNodeProperties(constructor);
     if (allNodeProperties) {
       for (const nodeProperties of Object.values(allNodeProperties)) {
-        nodeProperties.actor.name = constructor.name;
-        nodeProperties.actor.type = TypeNode(constructor as ClassConstructor<unknown>);
         nodeProperties.actor = deepmerge(nodeProperties.actor, userActorProperties || {}, { clone: false });
-        nodeProperties.actor.attributes = getAllAttributeProperties(constructor);
-        Gateway.logger.debug('Actor config', {
-          className: constructor.name,
-          actor: {
-            name: nodeProperties.actor.name,
-            type: nodeProperties.actor.type.name,
-            attributes: Object.keys(nodeProperties.actor.attributes),
-          }
-        });
-
+        nodeProperties.actor.name = constructor.name;
         nodeProperties.net = deepmerge.all([nodeProperties.net, Gateway.config.net || {},nodeProperties.actor.net || {},nodeProperties.method.net || {}], { clone: false }) as NetProperties;
         nodeProperties.protocol = deepmerge.all([nodeProperties.protocol, Gateway.config.protocol || {},nodeProperties.actor.protocol || {},nodeProperties.method.protocol || {}], { clone: false }) as ProtocolProperties;
-
-        Gateway.logger.debug('Method config', {
-          className: constructor.name,
-          methodName: nodeProperties.method.name,
-          net: nodeProperties.net,
-          protocol: nodeProperties.protocol,
-          parameters: Object.keys(nodeProperties.method.parameters || {}),
-          result: nodeProperties.method.result?.type?.name
-        });
-
         if(nodeProperties.protocol.type === NodeProtocolType.Path){
           const node = new PathNode(nodeProperties);
           Gateway.registerNode(node);
@@ -56,10 +32,6 @@ function Actor(userActorProperties: ObjectTB.Partial<ActorProperties,'deep'> = {
       }
     }
   };
-}
-
-export function ActorNode(properties: ObjectTB.Partial<ActorProperties,'deep'> = {}) {
-  return Actor(properties);
 }
 
 export function getAllNodeProperties(constructor: Function): Record<string, NodeProperties> {
@@ -76,21 +48,4 @@ export function getNodeProperties(constructor: Function, name: string): NodeProp
     return configs[name];
   }
   return configs[name];
-}
-
-
-export function getAllAttributeProperties(constructor: Function): Record<string, AttributeProperties> {
-  const result = constructor as unknown as Record<string, Record<string, AttributeProperties>>;
-  if(!result[ATTRIBUTE_ENDPOINT_CONFIGS_KEY]){
-    result[ATTRIBUTE_ENDPOINT_CONFIGS_KEY] = {};
-  }
-  return result[ATTRIBUTE_ENDPOINT_CONFIGS_KEY];
-}
-export function registerAttributeProperties(constructor: Function, attributeProperties: AttributeProperties): AttributeProperties {
-  const configs = getAllAttributeProperties(constructor);
-  if(!configs[attributeProperties.name]){
-    configs[attributeProperties.name] = attributeProperties;
-    return configs[attributeProperties.name];
-  }
-  return configs[attributeProperties.name];
 }

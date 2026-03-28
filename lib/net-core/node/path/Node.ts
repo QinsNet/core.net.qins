@@ -1,12 +1,11 @@
-import type { ParameterProtocol, RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
+import type { RequestProtocol, ResponseProtocol } from '../../protocol/Protocol';
 import { Gateway } from '../../gateway/IGateway';
-import { ObjectFilter } from './Protocol';
 import log from 'loglevel';
 import { ProtocolBuilder } from '../../util/Protocol';
 import { INode } from '../INode';
-import { OperateType } from '../../config/Action';
 import { NodeProperties } from '../../config/Node';
 import { NetType } from '../..';
+import { RequestViewOperate } from '../../view/tree/RequestViewOperate';
 
 export class PathNode implements INode {
   config: NodeProperties;
@@ -30,31 +29,48 @@ export class PathNode implements INode {
   }
   async request(instance: object, ...args: unknown[]): Promise<unknown> {
     this.logger.debug('Node request building', { endpoint: this.config.net.endpoint });
-    let request = this.buildRequest(instance, args);
+
+    //先构建原始视图和目标视图
+    const params = {} as Record<string, unknown>;
+    for(const [name,param] of Object.entries(this.config.method.parameters)){
+      params[name] = param.type.serialize(args[param.index])
+    }
+    const srcView = { actor: this.config.actor.type.serialize(instance), parameters: params };
+    const distView = {}
+    //对视图进行视图操作
+    for(const viewOper of this.config.method.view.input){
+      if(viewOper instanceof RequestViewOperate){
+        viewOper.apply(srcView, distView);
+      }
+      else {
+        throw new Error('Node request view type is not valid');
+      }
+    }
+
     let response = await Gateway.request(request, this);
     if (response.exception) {
       this.logger.debug('Node request failed', { endpoint: this.config.net.endpoint });
       throw new Error(JSON.stringify(response));
     }
     this.logger.debug('Node request completed', { endpoint: this.config.net.endpoint });
-    if(!this.config.method.isStatic && this.config.method.pact.response.actor){
-      if(this.config.method.pact.response.actor){
-        for(const [name,type] of Object.entries(this.config.method.pact.response.actor)){
-          if(type.includes(OperateType.Local)){
-            const value = this.config.actor.attributes[name].type.deserialize(JSON.stringify(response.actor.properties![name]));
-            (instance as any)[name] = ObjectFilter(value,(instance as any)[name], type);
+    if(!this.config.method.isStatic && this.config.method.view.response.actor){
+      if(this.config.method.view.response.actor){
+        for(const [name,type] of Object.entries(this.config.method.view.response.actor)){
+          if(type.includes(OperateType.Request)){
+            const value = this.config.actor.attributes[name].type.deserialize(JSON.stringify(response.actor.attributes![name]));
+            (instance as any)[name] = ViewAssign(value,(instance as any)[name], type);
           }
         }
       }
     }
-    if(this.config.method.pact.response.parameters){
+    if(this.config.method.view.response.parameters){
       const targets = this.packageParams(args, false)
-      for(const [name,value] of Object.entries(this.config.method.pact.response.parameters)){
-          const target = targets[name].properties;
+      for(const [name,value] of Object.entries(this.config.method.view.response.parameters)){
+          const target = targets[name].attributes;
           if(!target){
             continue;
           }
-          ObjectFilter(request.parameters[name].properties, target, (value as Record<string, unknown> | OperateType[]));
+          ViewAssign(request.parameters[name].attributes, target, (value as Record<string, unknown> | OperateType[]));
       }
     }
     return response.result;
@@ -77,7 +93,7 @@ export class PathNode implements INode {
 
       let instance = this.config.actor.constructor as object;
       if (!this.config.method.isStatic) {
-        instance = this.config.actor.type.deserialize(request.actor.properties!) as object;
+        instance = this.config.actor.type.deserialize(request.actor.attributes!) as object;
         this.logger.debug('Node service instance created', { endpoint: request.node });
       }
 
@@ -111,15 +127,10 @@ export class PathNode implements INode {
   buildRequest(instance: object, args: unknown[]): RequestProtocol {
     const params = this.packageParams(args);
     let attributes = undefined;
-    if(this.config.method.pact.request.actor){
+    if(!this.config.method.isStatic){
       attributes = {} as {[key: string]: string};
-      for(const [name,type] of Object.entries(this.config.method.pact.request.actor)){
-        if(type.includes(OperateType.Local)){
-          if(!this.config.actor.attributes[name]){
-            throw new Error('Attribute not found');
-          }
-          attributes[name] = JSON.parse(this.config.actor.attributes[name].type.serialize((instance as any)[name]));
-        }
+      for(const [name,properties] of Object.entries(this.config.actor.attributes)){
+        attributes[name] = JSON.parse(properties.type.serialize((instance as any)[name]));
       }
     }
     const request = {
@@ -133,16 +144,16 @@ export class PathNode implements INode {
       method: this.config.name,
       parameters: params,
     };
-    return ProtocolBuilder.buildPathRequest(request, this.config.method.pact.request);
+    return ProtocolBuilder.buildPathRequest(request, this.config.method.view.request);
   }
 
   buildResponse(instance: object, args: unknown[], result: unknown): ResponseProtocol {
     const params = this.packageParams(args);
     let attributes = undefined;
-    if(this.config.method.pact.response.actor){
+    if(this.config.method.view.response.actor){
       attributes = {} as {[key: string]: string};
-      for(const [name,type] of Object.entries(this.config.method.pact.response.actor)){
-        if(type.includes(OperateType.Local)){
+      for(const [name,type] of Object.entries(this.config.method.view.response.actor)){
+        if(type.includes(OperateType.Request)){
           attributes[name] = JSON.parse(this.config.actor.attributes[name].type.serialize((instance as any)[name]));
         }
       }
@@ -163,7 +174,7 @@ export class PathNode implements INode {
           })
         },
     };
-    return ProtocolBuilder.buildPathResponse(response, this.config.method.pact.response);
+    return ProtocolBuilder.buildPathResponse(response, this.config.method.view.response);
   }
 
   private extractParams(request: RequestProtocol): unknown[] {
@@ -171,12 +182,12 @@ export class PathNode implements INode {
     const sortParams = Object.values(this.config.method.parameters).sort((a, b) => a.index - b.index);
     sortParams.forEach((param) => {
       const requestParam = request.parameters[param.name]!
-      if(!requestParam.properties){
+      if(!requestParam.attributes){
         params.push(undefined);
         return;
       }
       else {
-        params.push(param.type.deserialize(requestParam.properties))
+        params.push(param.type.deserialize(requestParam.attributes))
       }
     });
     return params;
@@ -184,17 +195,16 @@ export class PathNode implements INode {
 
   private packageParams(args: unknown[], record: boolean = true): {[key: string]: ParameterProtocol} {
     const params: {[key: string]: ParameterProtocol} = {};
-    args.forEach((arg, index) => {
-      const param = Object.values(this.config.method.parameters).find((item) => item.index === index)!
-      params[param.name] = {
-        name: param.name,
-        type: param.type.name,
-        index: param.index,
+    for(const properties of Object.values(this.config.method.parameters)){
+      params[properties.name] = {
+        name: properties.name,
+        type: properties.type.name,
+        index: properties.index,
       };
-      if(arg !== undefined){
-        params[param.name].properties = record ? JSON.parse(param.type.serialize(arg)) : arg;
+      if(args[properties.index] !== undefined){
+        params[properties.name].attributes = record ? JSON.parse(properties.type.serialize(args[properties.index])) : args[properties.index];
       }
-    });
+    }
     return params;
   }
 }

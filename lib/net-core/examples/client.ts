@@ -26,7 +26,7 @@ class User {
   packages: Pack[] = [];
 
   @ActionNode({
-    pact: {
+    view: {
       request: {
         actor: {
           id: [OperateType.Local],
@@ -50,7 +50,7 @@ class User {
   }
 
   @ActionNode({
-    pact: {
+    view: {
       request: {
         actor: {},
         parameters: {
